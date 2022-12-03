@@ -1,0 +1,28 @@
+{
+  "info": {
+    "X_player": {
+      "address": 16728398,
+      "type": ">i2"
+    },
+    "health": {
+      "address": 16725993,
+      "type": "|u1"
+    },
+    "lives": {
+      "address": 16725984,
+      "type": "|i1"
+    },
+    "score": {
+      "address": 16725942,
+      "type": ">d4"
+    },
+    "shurikens": {
+      "address": 16725986,
+      "type": ">u2"
+    },
+    "section": {
+      "address": 16725928,
+      "type": ">i1"
+    }
+  }
+}
