@@ -63,7 +63,6 @@ def main(args):
 
     bots = None
     bots_batch = []
-    fitnesses = None
 
     # [MPI buffer size, pair position, sending]
     pairings = None
@@ -88,6 +87,8 @@ def main(args):
 
         generation_results = np.empty((pop_size, nb_pops, 3), dtype=np.float32)
 
+        total_nb_emulator_steps = 0
+
     if old_nb_gen > 0:
 
         """
@@ -97,12 +98,9 @@ def main(args):
 
             state = env.io.load_state()
 
-            generation_results, bots = state
+            fitnesses, total_nb_emulator_steps, bots = state
 
-            fitnesses_sorting_indices = generation_results[:, :, 0].argsort(
-                axis=0
-            )
-
+            fitnesses_sorting_indices = fitnesses.argsort(axis=0)
             fitnesses_rankings = fitnesses_sorting_indices.argsort(axis=0)
 
             bots = [
@@ -303,6 +301,9 @@ def main(args):
                 np.max(fitnesses, 0),
             )
 
+            nb_emulator_steps = generation_results[:, :, 1]
+            total_nb_emulator_steps += nb_emulator_steps.sum()
+
         """
         State saving
         """
@@ -318,11 +319,7 @@ def main(args):
                     bots = bots + bot_batch
 
                 env.io.save_state(
-                    [
-                        generation_results,
-                        bots,
-                    ],
-                    gen_nb + 1,
+                    [bots, fitnesses, total_nb_emulator_steps], gen_nb + 1
                 )
 
 

@@ -191,9 +191,9 @@ def main(args):
         with open(path + "state.pkl", "rb") as f:
             state = pickle.load(f)
 
-        generation_results, bots = state
+        bots, fitnesses, total_nb_emulator_steps = state
 
-        fitnesses_sorting_indices = generation_results[:, :, 0].argsort(axis=0)
+        fitnesses_sorting_indices = fitnesses.argsort(axis=0)
         fitnesses_rankings = fitnesses_sorting_indices.argsort(axis=0)
         selected = np.greater_equal(fitnesses_rankings, pop_size // 2)
         selected_indices = np.where(selected[:, 0] == True)[0]
@@ -214,7 +214,7 @@ def main(args):
                 if seeding == "reg":
                     seed = MAX_INT - j
                 else:
-                    seed = seeding
+                    seed = int(seeding)
 
                 np.random.seed(seed)
                 torch.manual_seed(seed)
@@ -281,7 +281,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--states_path",
-        "-p",
+        "-s",
         type=str,
         required=True,
         help="Path to the saved states <=> "
@@ -305,19 +305,7 @@ if __name__ == "__main__":
         help="Number of observations per test.",
     )
 
-    parser.add_argument(
-        "--seed",
-        "-s",
-        type=int,
-        default=-1,
-        help="Optional seed to evaluate on. If this argument is "
-        "passed, only one test will be ran.",
-    )
-
     args = parser.parse_args()
-
-    if args.seed != -1:
-        args.nb_tests = 1
 
     is_forking_process = mpi_fork(args.nb_mpi_processes)
 
