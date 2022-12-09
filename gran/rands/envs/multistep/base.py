@@ -53,7 +53,7 @@ class MultistepEnvBase(EnvBase):
             args.extra_arguments["seeding"] = "reg"
         elif (
             not isinstance(args.extra_arguments["seeding"], int)
-            or args.extra_arguments["seeding"] != "reg"
+            and args.extra_arguments["seeding"] != "reg"
         ):
             raise Exception(
                 "Extra argument 'seed' is of wrong type. "

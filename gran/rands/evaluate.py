@@ -18,271 +18,310 @@ import os
 import pickle
 import random
 import sys
-import warnings
 
 from mpi4py import MPI
 import numpy as np
 import torch
 
-
-sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/..")
-
-warnings.filterwarnings("ignore", category=UserWarning)
-sys.setrecursionlimit(2**31 - 1)
-
-parser = argparse.ArgumentParser()
-
-parser.add_argument(
-    "--states_path",
-    "-s",
-    type=str,
-    required=True,
-    help="Path to the saved states <=> "
-    "data/states/<env_path>/<extra_arguments>/<bots_path>/<population_size>/",
-)
-
-parser.add_argument(
-    "--nb_tests",
-    "-t",
-    type=int,
-    default=10,
-    help="Number of tests to evaluate the agents on.",
-)
-
-parser.add_argument(
-    "--nb_obs_per_test",
-    "-o",
-    type=int,
-    default=2**31 - 1,
-    help="Number of observations per test.",
-)
-
-args = parser.parse_args()
+from gran.rands.utils.misc import mpi_fork
 
 
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-size = comm.Get_size()
+def main(args):
 
-MAX_INT = 2**31 - 1
+    """
+    Initialization of various MPI-specific variables.
+    """
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
 
-"""
-Process arguments
-"""
+    MAX_INT = 2**31 - 1
 
-if args.states_path[-1] == "/":
-    args.states_path = args.states_path[:-1]
+    """
+    Process arguments
+    """
+    if args.states_path[-1] == "/":
+        args.states_path = args.states_path[:-1]
 
-split_path = args.states_path.split("/")
+    split_path = args.states_path.split("/")
 
-env_path = split_path[-4]
-extra_arguments = split_path[-3]
-bots_path = split_path[-2]
-pop_size = int(split_path[-1])
+    env_path = split_path[-4]
+    extra_arguments = split_path[-3]
+    bots_path = split_path[-2]
+    pop_size = int(split_path[-1])
 
-split_extra_arguments = extra_arguments.split("~")
+    split_extra_arguments = extra_arguments.split("~")
 
-if "score" in env_path:
+    if "score" in env_path:
 
-    seed = split_extra_arguments[0].split(".")[1]
-    steps = split_extra_arguments[1].split(".")[1]
-    task = split_extra_arguments[2].split(".")[1]
-    transfer = split_extra_arguments[3].split(".")[1]
-    trials = split_extra_arguments[4].split(".")[1]
+        seeding = split_extra_arguments[0].split(".")[1]
+        steps = split_extra_arguments[1].split(".")[1]
+        task = split_extra_arguments[2].split(".")[1]
+        transfer = split_extra_arguments[3].split(".")[1]
+        trials = split_extra_arguments[4].split(".")[1]
 
-elif "imitate.retro" in env_path:
+    elif "imitate.retro" in env_path:
 
-    level = split_extra_arguments[0].split(".")[1]
-    merge = split_extra_arguments[1].split(".")[1]
-    steps = split_extra_arguments[2].split(".")[1]
-    subject = split_extra_arguments[3].split(".")[1]
-    task = split_extra_arguments[4].split(".")[1]
-    transfer = split_extra_arguments[5].split(".")[1]
+        level = split_extra_arguments[0].split(".")[1]
+        merge = split_extra_arguments[1].split(".")[1]
+        steps = split_extra_arguments[2].split(".")[1]
+        subject = split_extra_arguments[3].split(".")[1]
+        task = split_extra_arguments[4].split(".")[1]
+        transfer = split_extra_arguments[5].split(".")[1]
 
-else:  # 'imitate' in env_path:
+    else:  # 'imitate' in env_path:
 
-    merge = split_extra_arguments[0].split(".")[1]
-    steps = split_extra_arguments[1].split(".")[1]
-    task = split_extra_arguments[2].split(".")[1]
-    transfer = split_extra_arguments[3].split(".")[1]
+        merge = split_extra_arguments[0].split(".")[1]
+        steps = split_extra_arguments[1].split(".")[1]
+        task = split_extra_arguments[2].split(".")[1]
+        transfer = split_extra_arguments[3].split(".")[1]
 
-"""
-Initialize environment
-"""
+    """
+    Initialize environment
+    """
 
-if "control" in env_path:
+    if "control" in env_path:
 
-    import gym
-    from gran.utils.control import get_control_task_name
+        import gym
+        from gran.utils.control import get_control_task_name
 
-    emulator = gym.make(get_control_task_name(task))
+        emulator = gym.make(get_control_task_name(task))
 
-    hide_score = lambda x: x
+        hide_score = lambda x: x
 
-elif "atari" in env_path:
+    elif "atari" in env_path:
 
-    import gym
+        import gym
 
-    from gran.utils.atari import (
-        get_atari_task_name,
-        hide_atari_score as hide_score,
-        wrap_atari,
-    )
-
-    emulator = wrap_atari(
-        gym.make(
-            get_atari_task_name(task), frameskip=1, repeat_action_probability=0
+        from gran.utils.atari import (
+            get_atari_task_name,
+            hide_atari_score as hide_score,
+            wrap_atari,
         )
-    )
 
-elif "retro" in env_path:
+        emulator = wrap_atari(
+            gym.make(
+                get_atari_task_name(task),
+                frameskip=1,
+                repeat_action_probability=0,
+            )
+        )
 
-    import retro
-    from utils.functions.retro import get_task_name, hide_score
-    from utils.functions.retro import get_state_name
+    elif "retro" in env_path:
 
-    emulator = retro.make(
-        game=get_task_name(task), state=get_state_name(level)
-    )
+        import retro
+        from utils.functions.retro import get_task_name, hide_score
+        from utils.functions.retro import get_state_name
 
-else:  # 'gravity' in env_path:
+        emulator = retro.make(
+            game=get_task_name(task), state=get_state_name(level)
+        )
 
-    data = np.load("data/behaviour/gravity/11k.npy")[-1000:]
+    else:  # 'gravity' in env_path:
 
-"""
-Import bots
-"""
+        data = np.load("data/behaviour/gravity/11k.npy")[-1000:]
 
-if "gym" in env_path:
+    """
+    Import bots
+    """
 
-    if "dynamic" in bots_path:
-        from bots.network.dynamic.rnn.control import Bot
-    else:  # 'static' in bots_path:
-        from bots.network.static.rnn.control import Bot
+    if "control" in env_path:
 
-elif "atari" in env_path:
+        if "dynamic.rnn" in bots_path:
+            from bots.network.dynamic.rnn.control import Bot
+        elif "static.rnn" in bots_path:
+            from bots.network.static.rnn.control import Bot
+        else:  #'static.fc' in bots_path:
+            from bots.network.static.fc.control import Bot
 
-    if "dynamic" in bots_path:
-        from bots.network.dynamic.conv_rnn.atari import Bot
-    else:  # 'static' in bots_path:
-        from bots.network.static.conv_rnn.atari import Bot
+    elif "atari" in env_path:
 
-elif "retro" in env_path:
+        if "dynamic" in bots_path:
+            from bots.network.dynamic.conv_rnn.atari import Bot
+        else:  # 'static' in bots_path:
+            from bots.network.static.conv_rnn.atari import Bot
 
-    if "dynamic" in bots_path:
-        from bots.network.dynamic.conv_rnn.retro import Bot
-    else:  # 'static' in bots_path:
-        from bots.network.static.conv_rnn.retro import Bot
+    elif "retro" in env_path:
 
-else:  # 'gravity' in env_path:
+        if "dynamic" in bots_path:
+            from bots.network.dynamic.conv_rnn.retro import Bot
+        else:  # 'static' in bots_path:
+            from bots.network.static.conv_rnn.retro import Bot
 
-    if "dynamic.conv_rnn" in bots_path:
-        from bots.network.dynamic.conv_rnn.gravity import Bot
-    else:  # 'static.conv_rnn' in bots_path:
-        from bots.network.static.conv_rnn.gravity import Bot
+    else:  # 'gravity' in env_path:
 
-"""
-Distribute workload
-"""
+        if "dynamic.conv_rnn" in bots_path:
+            from bots.network.dynamic.conv_rnn.gravity import Bot
+        else:  # 'static.conv_rnn' in bots_path:
+            from bots.network.static.conv_rnn.gravity import Bot
 
-files = [os.path.basename(x) for x in glob.glob(args.states_path + "/*")]
+    """
+    Distribute workload
+    """
 
-gens = []
+    files = [os.path.basename(x) for x in glob.glob(args.states_path + "/*")]
 
-for file in files:
-    if file.isdigit() and os.path.isdir(args.states_path + "/" + file):
-        gens.append(int(file))
+    gens = []
 
-gens.sort()
+    for file in files:
+        if file.isdigit() and os.path.isdir(args.states_path + "/" + file):
+            gens.append(int(file))
 
-process_gens = []
+    gens.sort()
 
-for i in range(len(gens)):
-    if i % size == rank:
-        process_gens.append(gens[i])
+    process_gens = []
 
-for gen in process_gens:
+    for i in range(len(gens)):
+        if i % size == rank:
+            process_gens.append(gens[i])
 
-    print("Gen : " + str(gen))
+    for gen in process_gens:
 
-    path = args.states_path + "/" + str(gen) + "/"
+        print("Gen : " + str(gen))
 
-    # Already evaluated
-    if os.path.isfile(path + "scores.npy"):
-        continue
+        path = args.states_path + "/" + str(gen) + "/"
 
-    if not os.path.isfile(path + "state.pkl"):
-        raise Exception("No saved state found at " + state_path + ".")
+        # Already evaluated
+        if os.path.isfile(path + "scores.npy"):
+            continue
 
-    generation_results, bots = state
+        if not os.path.isfile(path + "state.pkl"):
+            raise Exception("No saved state found at " + state_path + ".")
 
-    fitnesses_sorting_indices = generation_results[:, :, 0].argsort(axis=0)
-    fitnesses_rankings = fitnesses_sorting_indices.argsort(axis=0)
-    selected = np.greater_equal(fitnesses_rankings, pop_size // 2)
-    selected_indices = np.where(selected[:, 0] == True)[0]
+        with open(path + "state.pkl", "rb") as f:
+            state = pickle.load(f)
 
-    if "gravity" in env_path:
-        scores = np.zeros((pop_size // 2))
-    else:
-        scores = np.zeros((pop_size // 2, args.nb_tests))
+        generation_results, bots = state
 
-    for i in range(pop_size // 2):
+        fitnesses_sorting_indices = generation_results[:, :, 0].argsort(axis=0)
+        fitnesses_rankings = fitnesses_sorting_indices.argsort(axis=0)
+        selected = np.greater_equal(fitnesses_rankings, pop_size // 2)
+        selected_indices = np.where(selected[:, 0] == True)[0]
 
-        bot = bots[selected_indices[i]][0]
+        if "gravity" in env_path:
+            scores = np.zeros((pop_size // 2))
+        else:
+            scores = np.zeros((pop_size // 2, args.nb_tests))
 
-        bot.setup_to_run()
+        for i in range(pop_size // 2):
 
-        for j in range(args.nb_tests):
+            bot = bots[selected_indices[i]][0]
 
-            if seed == "reg":
-                seed = MAX_INT - j
+            bot.setup_to_run()
 
-            np.random.seed(MAX_INT - j)
-            torch.manual_seed(MAX_INT - j)
-            random.seed(MAX_INT - j)
-            bot.reset()
+            for j in range(args.nb_tests):
 
-            if "gravity" not in env_path:
-
-                emulator.seed(MAX_INT - j)
-                obs = emulator.reset()
-                done = False
-
-            else:  # 'gravity' in env_path:
-
-                data_point = data[j]
-                if task == "predict":
-                    nb_obs_fed_to_generator = 3
+                if seeding == "reg":
+                    seed = MAX_INT - j
                 else:
-                    nb_obs_fed_to_generator = 1  # 'generate'
+                    seed = seeding
 
-            for k in range(args.nb_obs_per_test):
+                np.random.seed(seed)
+                torch.manual_seed(seed)
+                random.seed(seed)
+                bot.reset()
 
                 if "gravity" not in env_path:
 
-                    if "imitate" in env_path:
-                        obs = hide_score(obs)
-
-                    obs, rew, done, _ = emulator.step(bot(obs))
-
-                    scores[i][j] += rew
-
-                    if done:
-                        break
+                    obs, _ = emulator.reset(seed=seed)
 
                 else:  # 'gravity' in env_path:
 
-                    if k < nb_obs_fed_to_generator:
-                        obs = data_point[k]
+                    data_point = data[j]
+                    if task == "predict":
+                        nb_obs_fed_to_generator = 3
+                    else:
+                        nb_obs_fed_to_generator = 1  # 'generate'
 
-                    obs = bot(obs)
+                for k in range(args.nb_obs_per_test):
 
-                    if torch.is_tensor(obs):
-                        obs = obs.numpy()
+                    if "gravity" not in env_path:
 
-                    scores[i] += np.sum((obs - data_point[k + 1]) ** 3)
+                        if "imitate" in env_path:
+                            obs = hide_score(obs)
 
-                    if k == 2:
-                        break
+                        obs, rew, terminated, truncated, _ = emulator.step(
+                            bot(obs)
+                        )
 
-    np.save(path + "scores.npy", scores)
+                        scores[i][j] += rew
+
+                        if terminated or truncated:
+                            break
+
+                    else:  # 'gravity' in env_path:
+
+                        if k < nb_obs_fed_to_generator:
+                            obs = data_point[k]
+
+                        obs = bot(obs)
+
+                        if torch.is_tensor(obs):
+                            obs = obs.numpy()
+
+                        scores[i] += np.sum((obs - data_point[k + 1]) ** 3)
+
+                        if k == 2:
+                            break
+
+        np.save(path + "scores.npy", scores)
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--nb_mpi_processes",
+        "-n",
+        type=int,
+        default=1,
+        help="Number of MPI processes to fork and run simultaneously.",
+    )
+
+    parser.add_argument(
+        "--states_path",
+        "-p",
+        type=str,
+        required=True,
+        help="Path to the saved states <=> "
+        "data/states/<env_path>/<additional_arguments>/"
+        "<bots_path>/<population_size>/",
+    )
+
+    parser.add_argument(
+        "--nb_tests",
+        "-t",
+        type=int,
+        default=10,
+        help="Number of tests to evaluate the agents on.",
+    )
+
+    parser.add_argument(
+        "--nb_obs_per_test",
+        "-o",
+        type=int,
+        default=2**31 - 1,
+        help="Number of observations per test.",
+    )
+
+    parser.add_argument(
+        "--seed",
+        "-s",
+        type=int,
+        default=-1,
+        help="Optional seed to evaluate on. If this argument is "
+        "passed, only one test will be ran.",
+    )
+
+    args = parser.parse_args()
+
+    if args.seed != -1:
+        args.nb_tests = 1
+
+    is_forking_process = mpi_fork(args.nb_mpi_processes)
+
+    if is_forking_process:
+        sys.exit()
+
+    main(args)

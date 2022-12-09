@@ -5,11 +5,8 @@ import torch
 from torch.distributions.normal import Normal
 import torch.nn as nn
 import torch.nn.functional as F
-from torchtyping import TensorType
-from typeguard import typechecked
 
 
-@typechecked
 class MDNRNN(pl.LightningModule):
     def __init__(
         self,
@@ -36,18 +33,18 @@ class MDNRNN(pl.LightningModule):
             hidden_size, (1 + 2 * latent_size) * nb_gaussians + 2
         )
 
-    def forward(
-        self,
-        latent: TensorType["seq_len", "batch_size", "latent_size"],
-        action: TensorType["seq_len", "batch_size", "nb_actions"],
-    ) -> Tuple[
-        TensorType["seq_len", "batch_size", "nb_gaussians"],
-        TensorType["seq_len", "batch_size", "nb_gaussians", "latent_size"],
-        TensorType["seq_len", "batch_size", "nb_gaussians", "latent_size"],
-        TensorType["seq_len", "batch_size"],
-        TensorType["seq_len", "batch_size"],
-    ]:
-
+    def forward(self, latent, action):
+        """
+        Args:
+            latent    seq_len x batch_size x latent_size
+            action    seq_len x batch_size x nb_actions
+        Returns:
+            log_pi    seq_len x batch_size x nb_gaussians
+            mu        seq_len x batch_size x nb_gaussians x latent_size
+            sigma     seq_len x batch_size x nb_gaussians x latent_size
+            rew_hat   seq_len x batch_size
+            done_hat  seq_len x batch_size
+        """
         seq_len, batch_size = latent.size(0), latent.size(1)
 
         latent_and_action = torch.cat([latent, action], dim=-1)
@@ -80,7 +77,7 @@ class MDNRNN(pl.LightningModule):
 
         return log_pi, mu, sigma, rew_hat, done_hat
 
-    def training_step(self, batch: torch.Tensor, _: int) -> torch.Tensor:
+    def step(self, batch):
 
         latent, action, next_latent, rew, done = batch
 
@@ -105,41 +102,29 @@ class MDNRNN(pl.LightningModule):
 
         return gmm_loss + bce_loss + mse_loss
 
-    def validation_step(self, batch: torch.Tensor, _: int) -> torch.Tensor:
+    def training_step(self, batch, _):
 
-        latent, action, next_latent, rew, done = batch
+        loss = self.step(batch)
+        self.log("train/loss", loss)
 
-        log_pi, mu, sigma, rew_hat, done_hat = self(latent, action)
+        return loss
 
-        gmm_loss = compute_gmm_loss(
-            next_latent,
-            log_pi,
-            mu,
-            sigma,
-        )
+    def validation_step(self, batch, _):
 
-        if self.predicting_termination:
-            bce_loss = F.binary_cross_entropy_with_logits(done_hat, done)
-        else:
-            bce_loss = 0
-
-        if self.predicting_reward:
-            mse_loss = F.mse_loss(rew_hat, rew)
-        else:
-            mse_loss = 0
-
-        loss = gmm_loss + bce_loss + mse_loss
-
-        self.log("val/loss", loss, prog_bar=True)
+        loss = self.step(batch)
+        self.log("val/loss", loss)
 
 
-def compute_gmm_loss(
-    latent: TensorType["seq_len", "batch_size", "latent_size"],
-    log_pi: TensorType["seq_len", "batch_size", "nb_gaussians"],
-    mu: TensorType["seq_len", "batch_size", "nb_gaussians", "latent_size"],
-    sigma: TensorType["seq_len", "batch_size", "nb_gaussians", "latent_size"],
-) -> TensorType[1]:
-
+def compute_gmm_loss(latent, log_pi, mu, sigma):
+    """
+    Args:
+        latent  seq_len x batch_size x latent_size
+        log_pi  seq_len x batch_size x nb_gaussians
+        mu      seq_len x batch_size x nb_gaussians x latent_size
+        sigma   seq_len x batch_size x nb_gaussians x latent_size
+    Returns:
+        loss    1
+    """
     latent = latent.unsqueeze(-2)
 
     latent_log_prob = Normal(mu, sigma).log_prob(latent)

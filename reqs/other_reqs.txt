@@ -1,0 +1,2 @@
+gym[all]==0.26.2
+pytorch-lightning==1.8.3.post1

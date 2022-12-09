@@ -406,10 +406,12 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
     if args.population_size % args.nb_mpi_processes != 0:
         raise Exception(
             "'population_size' must be a multiple of 'nb_mpi_processes'."
         )
+
     args.extra_arguments = json.loads(args.extra_arguments)
 
     is_forking_process = mpi_fork(args.nb_mpi_processes)

@@ -50,6 +50,8 @@ class Bot(StaticNetworkBotBase):
 
     def initialize_bot(self) -> None:
 
+        super().initialize_bot()
+
         # Setup variables for a running standardization of inputs
         self.mean = self.var = self.std = self.n = 0
 
