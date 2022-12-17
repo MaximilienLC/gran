@@ -15,6 +15,7 @@
 from typing import Any, Tuple
 
 import numpy as np
+import wandb
 
 from gran.rands.envs.multistep.base import MultistepEnvBase
 
@@ -189,6 +190,9 @@ class ScoreMultistepEnvBase(MultistepEnvBase):
                     done = True
 
             self.final_reset(obs)
+
+        if self.args.wandb_logging:
+            wandb.log({"score": self.bot.run_score, "gen": gen_nb})
 
         if "fit" in self.args.extra_arguments["transfer"]:
 

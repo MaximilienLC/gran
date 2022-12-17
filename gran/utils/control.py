@@ -15,6 +15,7 @@
 import copy
 
 import gym
+import numpy as np
 
 
 def set_control_emulator_state(emulator, state):
@@ -127,14 +128,25 @@ def get_control_task_info(task):
 
         d_output = emulator.action_space.n
         discrete_output = True
-        output_bound = None
+        absolute_output_bound = None
 
     else:  # isinstance(emulator.action_space, gym.spaces.Box):
 
         d_output = emulator.action_space.shape[0]
         discrete_output = False
-        output_bound = emulator.action_space.high.item()
+        absolute_output_bound = emulator.action_space.high[0]
+
+        if (
+            not np.all(
+                emulator.action_space.high == emulator.action_space.high[0]
+            )
+            or not np.all(
+                emulator.action_space.low == emulator.action_space.low[0]
+            )
+            or -emulator.action_space.high[0] != emulator.action_space.low[0]
+        ):
+            raise Exception("Task absolute output bound issue.")
 
     emulator.close()
 
-    return d_input, d_output, discrete_output, output_bound
+    return d_input, d_output, discrete_output, absolute_output_bound

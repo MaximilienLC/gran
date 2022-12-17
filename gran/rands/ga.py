@@ -32,6 +32,7 @@ import argparse
 import copy
 from importlib import import_module
 import json
+import os
 import pickle
 import sys
 import time
@@ -39,6 +40,7 @@ import time
 from mpi4py import MPI
 import numpy as np
 import torch
+import wandb
 
 from gran.rands.utils.misc import mpi_fork
 
@@ -51,6 +53,19 @@ def main(args):
     rank = comm.Get_rank()
     size = comm.Get_size()
     nb_gpus = torch.cuda.device_count()
+
+    if args.wandb_logging:
+
+        os.environ["WANDB_SILENT"] = "true"
+
+        with open("wandb_key.txt", "r") as f:
+            key = f.read()
+
+        wandb.login(key=key)
+
+        wandb_group_id = wandb.util.generate_id() if rank == 0 else None
+        wandb_group_id = comm.bcast(wandb_group_id, root=0)
+        wandb.init(group=wandb_group_id)
 
     env_import_path = args.env_path.replace("/", ".").replace(".py", "")
     env = getattr(import_module(env_import_path), "Env")(args)
@@ -68,12 +83,12 @@ def main(args):
     pairings = None
     pairings_batch = np.empty((bots_batch_size, nb_pops, 3), dtype=np.uint32)
 
-    # [fitnesses, nb emulator steps]
+    # [fitnesses, # emulator steps]
     fitnesses_and_nb_emulator_steps_batch = np.empty(
         (bots_batch_size, nb_pops, 2), dtype=np.float32
     )
 
-    # [fitnesses, nb emulator steps, pickled bot sizes]
+    # [fitnesses, # emulator steps, pickled bot sizes]
     generation_results = None
     generation_results_batch = np.empty(
         (bots_batch_size, nb_pops, 3), dtype=np.float32
@@ -322,6 +337,8 @@ def main(args):
                     [bots, fitnesses, total_nb_emulator_steps], gen_nb + 1
                 )
 
+    wandb.finish()
+
 
 if __name__ == "__main__":
 
@@ -392,6 +409,14 @@ if __name__ == "__main__":
         default=0,
         help="Frequency (int in [0, nb_generations]) at which to save the "
         "experiment's state.",
+    )
+
+    parser.add_argument(
+        "--wandb_logging",
+        "-w",
+        type=int,
+        default=0,
+        help="Whether to log current run with w&b.",
     )
 
     parser.add_argument(

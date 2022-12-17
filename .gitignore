@@ -1,1 +1,7 @@
 gran.egg-info/
+wandb/
+lightning_logs/
+.cache/
+.ipynb_checkpoints/
+data/
+wandb_key.txt
