@@ -107,7 +107,8 @@ class ScoreMultistepEnvBase(MultistepEnvBase):
             Any - A new environment observation (np.ndarray) or nothing.
             bool - Whether the episode should terminate.
         """
-        self.bot.reset()
+        if "mem" not in self.args.extra_arguments["transfer"]:
+            self.bot.reset()
 
         if "env" in self.args.extra_arguments["transfer"]:
 
