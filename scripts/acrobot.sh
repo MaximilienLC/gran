@@ -4,7 +4,7 @@ do
     for transfer in no fit env+fit mem+env+fit
     do
 
-        for seed in 0 1
+        for seed in 0
         do
 
             if [ $transfer = "no" ] || [ $transfer = "fit" ]; then
@@ -31,7 +31,7 @@ do
     for transfer in no fit env+fit mem+env+fit
     do
 
-        for seed in 0 1
+        for seed in 0
         do
 
             if [ $transfer = "no" ] || [ $transfer = "fit" ]; then

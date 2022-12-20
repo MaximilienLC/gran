@@ -209,6 +209,9 @@ def main(args):
 
             bot.setup_to_run()
 
+            if seeding != "reg":
+                args.nb_tests = 1
+
             for j in range(args.nb_tests):
 
                 if seeding == "reg":
