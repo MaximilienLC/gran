@@ -1,4 +1,4 @@
-# Copyright 2022 Maximilien Le Clei.
+# Copyright 2022 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
 import os
 import pickle
+
+from omegaconf import DictConfig
 
 
 class IOBase:
@@ -23,72 +24,39 @@ class IOBase:
     subclasses need to be named *IO* (a default subclass is defined below).
     """
 
-    def __init__(self, args: argparse.Namespace):
+    def __init__(self, cfg: DictConfig):
         """
-        Constructor.
-
         Args:
-            args - Experiment specific arguments (obtained through argparse).
+            cfg - Experiment specific configuration.
         """
-        self.args = args
+        self.cfg = cfg
 
         self.setup_save_points()
-        self.setup_state_path()
 
     def setup_save_points(self) -> None:
         """
         Method called upon object initialization. Sets up points at which to
         save the experiment's current state.
         """
-        if (
-            self.args.save_frequency > self.args.nb_generations
-            or self.args.save_frequency < 0
-        ):
-            raise Exception(
-                "'save_frequency' needs to be in the range [0, nb_generations]."
-            )
+        assert self.cfg.rands.save_frequency in range(
+            0, self.cfg.rands.nb_generations
+        ), "'cfg.rands.save_frequency' needs to be in range [0, nb_gen]."
 
         self.save_points = [
-            self.args.nb_elapsed_generations + self.args.nb_generations
+            self.cfg.rands.nb_elapsed_generations
+            + self.cfg.rands.nb_generations
         ]
 
-        if self.args.save_frequency == 0:
+        if self.cfg.rands.save_frequency == 0:
             return
 
-        for i in range(self.args.nb_generations // self.args.save_frequency):
+        for i in range(
+            self.cfg.rands.nb_generations // self.cfg.rands.save_frequency
+        ):
             self.save_points.append(
-                self.args.nb_elapsed_generations
-                + self.args.save_frequency * (i + 1)
+                self.cfg.rands.nb_elapsed_generations
+                + self.cfg.rands.save_frequency * (i + 1)
             )
-
-    def setup_state_path(self) -> None:
-        """
-        Method called upon object initialization. Sets up the path which
-        states will be loaded from and saved into.
-        """
-        self.path = (
-            self.args.data_path
-            + "states/"
-            + self.args.env_path.replace("/", ".").replace(".py", "")
-            + "/"
-        )
-
-        if self.args.extra_arguments == {}:
-
-            self.path += "~"
-
-        else:
-
-            for key in sorted(self.args.extra_arguments):
-                self.path += (
-                    str(key) + "." + str(self.args.extra_arguments[key]) + "~"
-                )
-
-            self.path = self.path[:-1] + "/"
-
-        self.path += (
-            self.args.bots_path.replace("/", ".").replace(".py", "") + "/"
-        )
 
     def load_state(self) -> list:
         """
@@ -98,9 +66,7 @@ class IOBase:
             list - state (fitnesses, bots, ...) of experiment.
         """
         state_path = (
-            self.path
-            + str(self.args.population_size)
-            + "/"
+            self.cfg.path
             + str(self.args.nb_elapsed_generations)
             + "/state.pkl"
         )
@@ -121,13 +87,7 @@ class IOBase:
             state - state (fitnesses, bots, ...) of experiment.
             gen_nb - Generation number.
         """
-        state_dir_path = (
-            self.path
-            + str(self.args.population_size)
-            + "/"
-            + str(gen_nb)
-            + "/"
-        )
+        state_dir_path = os.getcwd() + "/" + str(gen_nb) + "/"
 
         if not os.path.exists(state_dir_path):
             os.makedirs(state_dir_path, exist_ok=True)

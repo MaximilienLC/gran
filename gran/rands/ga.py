@@ -1,4 +1,4 @@
-# Copyright 2022 Maximilien Le Clei.
+# Copyright 2022 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 """
 Genetic algorithm of the Grads, Rands & Nets library (a.k.a. Gran).
 Forked and executed by as many CPU processes as are provided through
-`args.nb_mpi_processes`.
+`cfg.rands.nb_mpi_processes`.
 
 CPU processes communicate at regular intervals through `mpi4py` send, gather &
 scatter operations
@@ -28,24 +28,52 @@ CPU processes for 1-to-1 CPU-to-GPU communication (in the case that GPU devices
 are provided and compatible with the given task). Finally, the selection stage
 is performed by the main process.
 """
-import argparse
 import copy
 from importlib import import_module
-import json
 import os
 import pickle
+import subprocess
 import sys
 import time
 
+import hydra
+from hydra.core.hydra_config import HydraConfig
 from mpi4py import MPI
 import numpy as np
+from omegaconf import DictConfig, OmegaConf
 import torch
 import wandb
 
-from gran.rands.utils.misc import mpi_fork
+
+@hydra.main(
+    version_base=None, config_path="../../config", config_name="config"
+)
+def fork(cfg: DictConfig):
+
+    env = os.environ.copy()
+    env.update(MKL_NUM_THREADS="1", OMP_NUM_THREADS="1", INSIDE_MPI_FORK="1")
+
+    # --allow-run-as-root needed to run inside Docker
+    subprocess.check_call(
+        [
+            "mpiexec",
+            "--allow-run-as-root",
+            "-n",
+            str(cfg.rands.nb_mpi_processes),
+            sys.executable,
+            sys.argv[0],
+            str(cfg),
+            str(HydraConfig.get().runtime.output_dir),
+        ],
+        env=env,
+    )
 
 
-def main(args):
+def main():
+
+    cfg = OmegaConf.create(sys.argv[1])
+    os.chdir(sys.argv[2])
+
     """
     Initialization of various MPI & GA-specific variables.
     """
@@ -54,7 +82,11 @@ def main(args):
     size = comm.Get_size()
     nb_gpus = torch.cuda.device_count()
 
-    if args.wandb_logging:
+    assert cfg.rands.population_size % size == 0, ""
+    "'cfg.rands.population_size' must be a multiple of "
+    "'cfg.rands.nb_mpi_processes'."
+
+    if cfg.rands.wandb_logging:
 
         os.environ["WANDB_SILENT"] = "true"
 
@@ -67,12 +99,11 @@ def main(args):
         wandb_group_id = comm.bcast(wandb_group_id, root=0)
         wandb.init(group=wandb_group_id)
 
-    env_import_path = args.env_path.replace("/", ".").replace(".py", "")
-    env = getattr(import_module(env_import_path), "Env")(args)
+    env = getattr(import_module(cfg.rands.env_path), "Env")(cfg)
 
-    old_nb_gen = args.nb_elapsed_generations
-    new_nb_gen = args.nb_generations
-    pop_size = args.population_size
+    old_nb_gen = cfg.rands.nb_elapsed_generations
+    new_nb_gen = cfg.rands.nb_generations
+    pop_size = cfg.rands.population_size
     bots_batch_size = pop_size // size
     nb_pops = env.nb_pops
 
@@ -242,9 +273,7 @@ def main(args):
             """
             if not env.evaluates_on_gpu:
 
-                fitnesses_and_nb_emulator_steps_batch[i] = env.evaluate_bots(
-                    gen_nb
-                )
+                fitnesses_and_nb_emulator_steps_batch[i] = env.run_bots(gen_nb)
 
                 if gen_nb == 0:
                     bots_batch.append(copy.deepcopy(env.bots))
@@ -262,7 +291,7 @@ def main(args):
             if is_gpu_queuing_cpu_proc:
 
                 fitnesses_and_nb_emulator_steps_gpu_queuer_batch = (
-                    env.evaluate(gpu_queueing_group_bots_batch, gen_nb)
+                    env.run_bots(gpu_queueing_group_bots_batch, gen_nb)
                 )
 
             gpu_queueing_group_comm.Scatter(
@@ -298,10 +327,9 @@ def main(args):
 
             fitnesses = generation_results[:, :, 0]
 
-            if "merge" in args.extra_arguments:
-                if args.extra_arguments["merge"] == "yes":
-                    fitnesses[:, 0] += fitnesses[:, 1][::-1]
-                    fitnesses[:, 1] = fitnesses[:, 0][::-1]
+            if cfg.rands.merge == "yes":
+                fitnesses[:, 0] += fitnesses[:, 1][::-1]
+                fitnesses[:, 1] = fitnesses[:, 0][::-1]
 
             fitnesses_sorting_indices = fitnesses.argsort(axis=0)
             fitnesses_rankings = fitnesses_sorting_indices.argsort(axis=0)
@@ -342,103 +370,7 @@ def main(args):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "--nb_mpi_processes",
-        "-n",
-        type=int,
-        default=1,
-        help="Number of MPI processes to fork and run simultaneously.",
-    )
-
-    parser.add_argument(
-        "--env_path",
-        "-e",
-        type=str,
-        required=True,
-        help="Path to the Env class file.",
-    )
-
-    parser.add_argument(
-        "--bots_path",
-        "-b",
-        type=str,
-        required=True,
-        help="Path to the Bot class file.",
-    )
-
-    parser.add_argument(
-        "--population_size",
-        "-p",
-        type=int,
-        required=True,
-        help="Number of bots per population. Must be a multiple of the "
-        "number of MPI processes and must remain constant across successive "
-        "experiments.",
-    )
-
-    parser.add_argument(
-        "--nb_elapsed_generations",
-        "-l",
-        type=int,
-        default=0,
-        help="Number of elapsed generations.",
-    )
-
-    parser.add_argument(
-        "--nb_generations",
-        "-g",
-        type=int,
-        required=True,
-        help="Number of generations to run.",
-    )
-
-    parser.add_argument(
-        "--data_path",
-        "-d",
-        type=str,
-        default="data/",
-        help="Path to the data folder.",
-    )
-
-    parser.add_argument(
-        "--save_frequency",
-        "-f",
-        type=int,
-        default=0,
-        help="Frequency (int in [0, nb_generations]) at which to save the "
-        "experiment's state.",
-    )
-
-    parser.add_argument(
-        "--wandb_logging",
-        "-w",
-        type=int,
-        default=0,
-        help="Whether to log current run with w&b.",
-    )
-
-    parser.add_argument(
-        "--extra_arguments",
-        "-a",
-        type=str,
-        default="{}",
-        help="JSON string or path to a JSON file of extra arguments.",
-    )
-
-    args = parser.parse_args()
-
-    if args.population_size % args.nb_mpi_processes != 0:
-        raise Exception(
-            "'population_size' must be a multiple of 'nb_mpi_processes'."
-        )
-
-    args.extra_arguments = json.loads(args.extra_arguments)
-
-    is_forking_process = mpi_fork(args.nb_mpi_processes)
-
-    if is_forking_process:
-        sys.exit()
-
-    main(args)
+    if os.getenv("INSIDE_MPI_FORK"):
+        main()
+    else:
+        fork()

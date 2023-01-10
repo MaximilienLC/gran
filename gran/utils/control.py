@@ -1,4 +1,4 @@
-# Copyright 2022 Maximilien Le Clei.
+# Copyright 2022 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 import copy
 
-import gym
+import gymnasium
 import numpy as np
 
 
@@ -24,6 +24,20 @@ def set_control_emulator_state(emulator, state):
 
 def get_control_emulator_state(emulator):
     return copy.deepcopy(emulator)
+
+
+def reset_emulator_state(emulator, seed):
+
+    obs, info = emulator.reset(seed=seed)
+
+    return obs
+
+
+def run_emulator_step(emulator, action):
+
+    obs, rew, term, trunc, info = emulator.step(action)
+
+    return obs, rew, term or trunc
 
 
 def get_control_score_tasks():
@@ -120,17 +134,17 @@ def get_control_task_info(task):
 
     task_name = get_control_task_name(task)
 
-    emulator = gym.make(task_name)
+    emulator = gymnasium.make(task_name)
 
     d_input = emulator.observation_space.shape[0]
 
-    if isinstance(emulator.action_space, gym.spaces.Discrete):
+    if isinstance(emulator.action_space, gymnasium.spaces.Discrete):
 
         d_output = emulator.action_space.n
         discrete_output = True
         absolute_output_bound = None
 
-    else:  # isinstance(emulator.action_space, gym.spaces.Box):
+    else:  # isinstance(emulator.action_space, gymnasium.spaces.Box):
 
         d_output = emulator.action_space.shape[0]
         discrete_output = False

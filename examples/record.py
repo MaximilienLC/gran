@@ -1,4 +1,4 @@
-# Copyright 2022 Maximilien Le Clei.
+# Copyright 2022 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -71,9 +71,9 @@ class RenameUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
         renamed_module = module
         if module == "bots.static.rnn.control":
-            renamed_module = "bots.network.static.rnn.control"
+            renamed_module = "bots.netted.static.rnn.control"
         elif module == "bots.dynamic.rnn.control":
-            renamed_module = "bots.network.dynamic.rnn.control"
+            renamed_module = "bots.netted.dynamic.rnn.control"
 
         return super(RenameUnpickler, self).find_class(renamed_module, name)
 
@@ -178,30 +178,30 @@ Import bots
 if "gym" in env_path:
 
     if "dynamic" in bots_path:
-        from bots.network.dynamic.rnn.control import Bot
+        from bots.netted.dynamic.rnn.control import Bot
     else:  # 'static' in bots_path:
-        from bots.network.static.rnn.control import Bot
+        from bots.netted.static.rnn.control import Bot
 
 elif "atari" in env_path:
 
     if "dynamic" in bots_path:
-        from bots.network.dynamic.conv_rnn.atari import Bot
+        from bots.netted.dynamic.conv_rnn.atari import Bot
     else:  # 'static' in bots_path:
-        from bots.network.static.conv_rnn.atari import Bot
+        from bots.netted.static.conv_rnn.atari import Bot
 
 elif "retro" in env_path:
 
     if "dynamic" in bots_path:
-        from bots.network.dynamic.conv_rnn.retro import Bot
+        from bots.netted.dynamic.conv_rnn.retro import Bot
     else:  # 'static' in bots_path:
-        from bots.network.static.conv_rnn.retro import Bot
+        from bots.netted.static.conv_rnn.retro import Bot
 
 else:  # 'gravity' in env_path:
 
     if "dynamic.conv_rnn" in bots_path:
-        from bots.network.dynamic.conv_rnn.gravity import Bot
+        from bots.netted.dynamic.conv_rnn.gravity import Bot
     else:  # 'static.conv_rnn' in bots_path:
-        from bots.network.static.conv_rnn.gravity import Bot
+        from bots.netted.static.conv_rnn.gravity import Bot
 
 """
 Distribute workload

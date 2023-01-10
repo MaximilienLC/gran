@@ -41,7 +41,7 @@ do
             fi
 
             python3 -m gran.rands.evaluate -n 4 \
-            -s data/states/envs.multistep.score.control/seeding.$seed~steps.$steps~task.acrobot~transfer.$transfer~trials.1/bots.network.static.$net.control/16/
+            -s data/states/envs.multistep.score.control/seeding.$seed~steps.$steps~task.acrobot~transfer.$transfer~trials.1/bots.netted.static.$net.control/16/
 
         done
     done

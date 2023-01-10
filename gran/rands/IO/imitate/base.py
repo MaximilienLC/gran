@@ -1,4 +1,4 @@
-# Copyright 2022 Maximilien Le Clei.
+# Copyright 2022 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ class TargetBase:
             seed - Seed.
             step_nb - Current step number.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def __call__(self, x: Any) -> Any:
@@ -45,7 +45,7 @@ class TargetBase:
         Returns:
             Any - Output value.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class ImitateIOBase(IOBase):
@@ -57,4 +57,4 @@ class ImitateIOBase(IOBase):
         Returns:
             TargetBase - The target.
         """
-        raise NotImplementedError()
+        raise NotImplementedError

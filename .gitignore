@@ -5,3 +5,4 @@ lightning_logs/
 .ipynb_checkpoints/
 data/
 wandb_key.txt
+ps.py

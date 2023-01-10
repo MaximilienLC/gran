@@ -1,4 +1,4 @@
-# Copyright 2022 Maximilien Le Clei.
+# Copyright 2022 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -41,10 +41,7 @@ def mpi_fork(n):
     Re-launches the current script through mpiexec with N processes.
     The forking process returns True, others return False.
     """
-    if n <= 1:
-        return False
-
-    if os.getenv("INSIDE_MPI_FORK") is None:
+    if not os.getenv("INSIDE_MPI_FORK"):
 
         env = os.environ.copy()
         env.update(
@@ -66,7 +63,6 @@ def mpi_fork(n):
         return False
 
 
-# See https://fanf2.user.srcf.net/hermes/doc/antiforgery/stats.pdf
 def update_running_mean_std(x, old_mean, old_var, n):
 
     new_mean = old_mean + (x - old_mean) / n

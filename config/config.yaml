@@ -1,0 +1,23 @@
+hydra:
+  sweep:
+    dir: data/logs/
+    subdir: ${hydra.job.override_dirname}
+rands:
+  nb_mpi_processes: 4
+  env_path: envs.cpu.score.control
+  env:
+    task: acrobot
+    transfer: none
+    trials: 1
+    steps: 0
+    seeding: 0
+  bots_path: bots.cpu.static.control
+  bots:
+    static:
+      recurrent: false
+      sigma: 0.01
+  population_size: 16
+  nb_generations: 10
+  merge: false
+  save_frequency: 0
+  wandb_logging: false

@@ -1,0 +1,4 @@
+recurrent: False
+sigma:
+  starting: 0.0001
+  adaptivity: 0

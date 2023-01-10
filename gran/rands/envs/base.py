@@ -1,4 +1,4 @@
-# Copyright 2022 Maximilien Le Clei.
+# Copyright 2022 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,42 +13,67 @@
 # limitations under the License.
 
 from abc import ABC, abstractmethod
-import argparse
 from importlib import import_module
 
 import numpy as np
+from omegaconf import DictConfig
 
 
 class EnvBase(ABC):
     """
-    Env Base class. Environments are virtual playgrounds for bots to evolve
-    and produce behaviour. One environment makes interact, at a given time, as
-    many bots as there are populations.
+    Env Base class.
     Concrete subclasses need to be named *Env*.
     """
 
-    def __init__(
-        self,
-        args: argparse.Namespace,
-        io_path: str,
-        nb_pops: int,
-    ):
+    def __init__(self, cfg: DictConfig, io_path: str, nb_pops: int) -> None:
         """
-        Constructor.
-
         Args:
-            args - Experiment specific arguments (obtained through argparse).
+            cfg - Experiment specific configuration.
             io_path - Path to the environment's IO class.
             nb_pops - Total number of populations.
         """
-        self.args = args
+        self.cfg = cfg
         self.io_path = io_path
         self.nb_pops = nb_pops
+
+        self.verify_task_and_transfer()
 
         self.initialize_io()
         self.initialize_bots()
 
         self.evaluates_on_gpu = False
+
+    def verify_task_and_transfer(self) -> None:
+
+        assert hasattr(self, "get_valid_tasks"), "Envs require the attribute "
+        "'get_valid_tasks': a function that returns a list of all valid tasks."
+
+        assert (
+            self.cfg.rands.env.task in self.get_valid_tasks()
+        ), "'cfg.rands.env.task' needs to be chosen from one of " + str(
+            self.get_valid_tasks()
+        )
+
+        ge0_int = lambda x: isinstance(x, int) and x >= 0
+
+        assert (
+            ge0_int(self.cfg.rands.env.seeding)
+            or self.cfg.rands.env.seeding == "reg"
+        ), "'cfg.rands.seeding' needs to be an int >= 0 or string 'reg'."
+
+        assert ge0_int(
+            self.cfg.rands.env.steps
+        ), "'cfg.rands.steps' needs to be an "
+        "int >= 0."
+
+        """
+        transfer_options = ["none", "fit", "env+fit", "mem+env+fit"]
+
+        assert self.cfg.rands.transfer in transfer_options, ""
+        "'cfg.rands.transfer' needs be chosen from one of " + str(
+            transfer_options
+        )
+        """
 
     def initialize_io(self) -> None:
         """
@@ -56,7 +81,7 @@ class EnvBase(ABC):
         Initializes an IO object.
         IO objects handle file input/output.
         """
-        self.io = getattr(import_module(self.io_path), "IO")(self.args)
+        self.io = getattr(import_module(self.io_path), "IO")(self.cfg)
 
     def initialize_bots(self) -> None:
         """
@@ -64,16 +89,12 @@ class EnvBase(ABC):
         Initializes bots.
         Bots evolve and produce behaviour in the environment.
         """
-        bot_import_path = self.args.bots_path.replace("/", ".").replace(
-            ".py", ""
-        )
-
         self.bots = []
 
-        for pop_nb in range(self.nb_pops):
+        for pop_idx in range(self.nb_pops):
             self.bots.append(
-                getattr(import_module(bot_import_path), "Bot")(
-                    self.args, pop_nb, self.nb_pops
+                getattr(import_module(self.cfg.rands.bots_path), "Bot")(
+                    self.cfg, pop_idx, self.nb_pops
                 )
             )
 
@@ -95,50 +116,20 @@ class EnvBase(ABC):
             rank - MPI process rank.
             bots_batch_index - Index of current bot in the batch of bots.
         """
-        for pop_nb in range(self.nb_pops):
-            self.bots[pop_nb].mutate(
+        for pop_idx in range(self.nb_pops):
+            self.bots[pop_idx].mutate(
                 pop_size, bots_batch_size, gen_nb, rank, bots_batch_index
             )
 
-    def setup_to_run(self) -> None:
-        """
-        Setup bots to later run them within the environment.
-        """
-        for bot in self.bots:
-            bot.setup_to_run()
-
-    def setup_to_save(self) -> None:
-        """
-        Setup bots to then later save them (pickling to a file or pickling to
-        be sent to another process).
-        """
-        for bot in self.bots:
-            bot.setup_to_save()
-
-    def evaluate_bots(self, gen_nb: int) -> np.ndarray:
-        """
-        Method called once per iteration in order to evaluate, record number
-        of steps and attribute fitnesses to bots.
-
-        Args:
-            gen_nb - Generation number.
-        Returns:
-            np.ndarray - Numpy array of fitnesses and number of steps.
-        """
-        self.setup_to_run()
-        fitnesses_and_nb_steps = self.run(gen_nb)
-        self.setup_to_save()
-
-        return fitnesses_and_nb_steps
-
     @abstractmethod
-    def run(self, gen_nb: int) -> np.ndarray:
+    def run_bots(self, gen_nb: int) -> np.ndarray:
         """
-        Inner method of *evaluate_bots*.
+        Method called once per iteration in order to evaluate and attribute
+        fitnesses to bots, all the while recording their number of steps.
 
         Args:
             gen_nb - Generation number.
         Returns:
-            np.ndarray - Numpy array of fitnesses.
+            np.ndarray - Fitnesses and number of steps.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
