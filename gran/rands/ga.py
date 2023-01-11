@@ -41,6 +41,7 @@ from hydra.core.hydra_config import HydraConfig
 from mpi4py import MPI
 import numpy as np
 from omegaconf import DictConfig, OmegaConf
+import submitit
 import torch
 import wandb
 
