@@ -28,28 +28,21 @@ CPU processes for 1-to-1 CPU-to-GPU communication (in the case that GPU devices
 are provided and compatible with the given task). Finally, the selection stage
 is performed by the main process.
 """
-import copy
-from importlib import import_module
 import os
-import pickle
-import subprocess
 import sys
-import time
 
 import hydra
 from hydra.core.hydra_config import HydraConfig
-from mpi4py import MPI
-import numpy as np
 from omegaconf import DictConfig, OmegaConf
 import submitit
-import torch
-import wandb
 
 
 @hydra.main(
     version_base=None, config_path="../../config", config_name="config"
 )
 def fork(cfg: DictConfig):
+
+    import subprocess
 
     env = os.environ.copy()
     env.update(MKL_NUM_THREADS="1", OMP_NUM_THREADS="1", INSIDE_MPI_FORK="1")
@@ -71,6 +64,16 @@ def fork(cfg: DictConfig):
 
 
 def main():
+
+    import copy
+    from importlib import import_module
+    import pickle
+    import time
+
+    from mpi4py import MPI
+    import numpy as np
+    import torch
+    import wandb
 
     cfg = OmegaConf.create(sys.argv[1])
     os.chdir(sys.argv[2])

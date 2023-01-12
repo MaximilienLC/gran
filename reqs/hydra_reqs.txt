@@ -1,0 +1,3 @@
+hydra-core==1.3.1
+git+https://github.com/facebookincubator/submitit.git@escape_all
+hydra-submitit-launcher==1.2.0

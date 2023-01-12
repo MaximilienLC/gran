@@ -4,6 +4,8 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive 
 # Prevents Python from creating __pycache__ and .pyc files in project folder
 ENV PYTHONPYCACHEPREFIX=/.cache/python/
+# Append library path for import
+ENV PYTHONPATH=="${PYTHONPATH}:/gran"
 
 RUN apt-get update && apt-get install -y \
     wget \
@@ -16,7 +18,9 @@ RUN apt-get update && apt-get install -y \
     swig \
     # MuJoCo Requirements
     libosmesa6-dev \
-    patchelf
+    patchelf \
+    # submitit package install
+    git
 
 RUN wget https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz -P ~/Downloads/
 RUN mkdir -p ~/.mujoco/ && tar -zxf ~/Downloads/mujoco210-linux-x86_64.tar.gz -C ~/.mujoco/
@@ -24,4 +28,4 @@ RUN mkdir -p ~/.mujoco/ && tar -zxf ~/Downloads/mujoco210-linux-x86_64.tar.gz -C
 RUN echo "\n# MuJoCo\nMUJOCO_PATH=~/.mujoco/mujoco210/bin\nexport LD_LIBRARY_PATH=\$MUJOCO_PATH:\$LD_LIBRARY_PATH" >> ~/.bashrc
 
 ADD reqs /pip_reqs/
-RUN pip install -r /pip_reqs/torch_cpu.txt -r /pip_reqs/mpi4py.txt -r /pip_reqs/other_reqs.txt
+RUN pip install -r /pip_reqs/torch_cpu.txt -r /pip_reqs/mpi4py.txt -r /pip_reqs/hydra_reqs.txt -r /pip_reqs/other_reqs.txt
