@@ -6,3 +6,4 @@ lightning_logs/
 data/
 wandb_key.txt
 ps.py
+outputs/
