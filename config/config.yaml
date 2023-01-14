@@ -1,7 +1,3 @@
-hydra:
-  sweep:
-    dir: data/logs/
-    subdir: ${hydra.job.override_dirname}
 rands:
   nb_mpi_processes: 4
   env_path: envs.cpu.score.control
@@ -21,3 +17,12 @@ rands:
   merge: false
   save_frequency: 0
   wandb_logging: false
+hydra:
+  launcher:
+    account: rrg-pbellec
+    cpus_per_task: ${rands.nb_mpi_processes}
+  run:
+    dir: data/logs/${hydra.job.override_dirname}/
+  sweep:
+    dir: data/logs/
+    subdir: ${hydra.job.override_dirname}

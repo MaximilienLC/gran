@@ -1,8 +1,0 @@
-hydra:
-  run:
-    dir: data/logs/${hydra.job.override_dirname}/
-  sweep:
-    dir: data/logs/
-    subdir: ${hydra.job.override_dirname}
-rands:
-  nb_mpi_processes: 4

@@ -34,7 +34,6 @@ import sys
 import hydra
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, OmegaConf
-import submitit
 
 
 @hydra.main(
@@ -51,11 +50,11 @@ def fork(cfg: DictConfig):
     subprocess.check_call(
         [
             "mpiexec",
-            "--allow-run-as-root",
-            "-n",
+            "--allow-run-as-root",  # For Docker
+            "--oversubscribe" "-n",  # For Submitit
             str(cfg.rands.nb_mpi_processes),
             sys.executable,
-            sys.argv[0],
+            script,
             str(cfg),
             str(HydraConfig.get().runtime.output_dir),
         ],
@@ -374,7 +373,13 @@ def main():
 
 if __name__ == "__main__":
 
-    if os.getenv("INSIDE_MPI_FORK"):
+    if os.getenv("INSIDE_MPI_FORK"):  # Worker process
+
         main()
-    else:
+
+    else:  # Forking process
+
+        global script
+        script = sys.argv[0]
+
         fork()
