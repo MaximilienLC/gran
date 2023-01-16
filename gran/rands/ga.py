@@ -51,7 +51,8 @@ def fork(cfg: DictConfig):
         [
             "mpiexec",
             "--allow-run-as-root",  # For Docker
-            "--oversubscribe" "-n",  # For Submitit
+            "--oversubscribe",  # For Submitit
+            "-n",
             str(cfg.rands.nb_mpi_processes),
             sys.executable,
             script,

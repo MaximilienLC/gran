@@ -13,16 +13,14 @@ rands:
       recurrent: false
       sigma: 0.01
   population_size: 16
+  nb_elapsed_generations: 0
   nb_generations: 10
   merge: false
   save_frequency: 0
   wandb_logging: false
 hydra:
-  launcher:
-    account: rrg-pbellec
-    cpus_per_task: ${rands.nb_mpi_processes}
   run:
-    dir: data/logs/${hydra.job.override_dirname}/
+    dir: data/logs/${hydra.job.override_dirname},/
   sweep:
     dir: data/logs/
     subdir: ${hydra.job.override_dirname}
