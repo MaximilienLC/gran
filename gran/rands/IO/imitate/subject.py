@@ -16,7 +16,7 @@ from glob import glob
 
 import numpy as np
 
-from IO.imitate.base import ImitateIOBase, TargetBase
+from gran.rands.IO.imitate import ImitateIOBase, TargetBase
 
 
 class Target(TargetBase):

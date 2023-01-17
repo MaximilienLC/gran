@@ -21,9 +21,9 @@ import random
 import torch
 
 
-class CPUBotBase(ABC):
+class BaseBot(ABC):
     """
-    CPU Bot Base class.
+    Base Bot class.
     Concrete subclasses need to be named *Bot*.
     """
 
@@ -42,23 +42,23 @@ class CPUBotBase(ABC):
         """
         Initialize the bot before it starts getting built.
         """
-
-        # Initialize various run tracking variables.
         self.current_run_score = 0
         self.current_run_nb_steps = 0
 
-        if "env" in self.cfg.rands.env.transfer:
+        if self.cfg.alg == "ga":
 
-            self.saved_emulator_state = None
-            self.saved_emulator_obs = None
-            self.saved_emulator_seed = None
+            if "env" in self.cfg.env.transfer:
 
-            self.current_episode_score = 0
-            self.current_episode_nb_steps = 0
+                self.saved_emulator_state = None
+                self.saved_emulator_obs = None
+                self.saved_emulator_seed = None
 
-        if "fit" in self.cfg.rands.env.transfer:
+                self.current_episode_score = 0
+                self.current_episode_nb_steps = 0
 
-            self.continual_fitness = 0
+            if "fit" in self.cfg.env.transfer:
+
+                self.continual_fitness = 0
 
         self.initialize_()
 

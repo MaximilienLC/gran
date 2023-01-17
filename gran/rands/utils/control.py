@@ -18,6 +18,15 @@ import gymnasium
 import numpy as np
 
 
+def update_running_mean_std(x, old_mean, old_var, n):
+
+    new_mean = old_mean + (x - old_mean) / n
+    new_var = old_var + (x - old_mean) * (x - new_mean)
+    new_std = np.sqrt(new_var / n)
+
+    return new_mean, new_var, new_std
+
+
 def set_control_emulator_state(emulator, state):
     emulator = state
 

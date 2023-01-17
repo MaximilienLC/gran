@@ -19,7 +19,7 @@ import numpy as np
 from omegaconf import DictConfig
 
 
-class EnvBase(ABC):
+class BaseEnv(ABC):
     """
     Env Base class.
     Concrete subclasses need to be named *Env*.
@@ -49,28 +49,25 @@ class EnvBase(ABC):
         "'get_valid_tasks': a function that returns a list of all valid tasks."
 
         assert (
-            self.cfg.rands.env.task in self.get_valid_tasks()
-        ), "'cfg.rands.env.task' needs to be chosen from one of " + str(
+            self.cfg.env.task in self.get_valid_tasks()
+        ), "'cfg.env.task' needs to be chosen from one of " + str(
             self.get_valid_tasks()
         )
 
         ge0_int = lambda x: isinstance(x, int) and x >= 0
 
         assert (
-            ge0_int(self.cfg.rands.env.seeding)
-            or self.cfg.rands.env.seeding == "reg"
-        ), "'cfg.rands.seeding' needs to be an int >= 0 or string 'reg'."
+            ge0_int(self.cfg.env.seeding) or self.cfg.env.seeding == "reg"
+        ), "'cfg.seeding' needs to be an int >= 0 or string 'reg'."
 
-        assert ge0_int(
-            self.cfg.rands.env.steps
-        ), "'cfg.rands.steps' needs to be an "
+        assert ge0_int(self.cfg.env.steps), "'cfg.steps' needs to be an "
         "int >= 0."
 
         """
         transfer_options = ["none", "fit", "env+fit", "mem+env+fit"]
 
-        assert self.cfg.rands.transfer in transfer_options, ""
-        "'cfg.rands.transfer' needs be chosen from one of " + str(
+        assert self.cfg.transfer in transfer_options, ""
+        "'cfg.transfer' needs be chosen from one of " + str(
             transfer_options
         )
         """
@@ -93,7 +90,7 @@ class EnvBase(ABC):
 
         for pop_idx in range(self.nb_pops):
             self.bots.append(
-                getattr(import_module(self.cfg.rands.bots_path), "Bot")(
+                getattr(import_module(self.cfg.bots_path), "Bot")(
                     self.cfg, pop_idx, self.nb_pops
                 )
             )

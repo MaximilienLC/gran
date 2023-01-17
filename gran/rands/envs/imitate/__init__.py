@@ -18,12 +18,12 @@ import numpy as np
 import wandb
 from omegaconf import DictConfig
 
-from gran.rands.envs.base import EnvBase
+from gran.rands.envs import BaseEnv
 
 
-class CPUImitateEnvBase(EnvBase):
+class BaseImitateEnv(BaseEnv):
     """
-    CPU Imitate Env Base class.
+    Base Imitate Env class.
     Concrete subclasses need to be named *Env*.
     """
 
@@ -50,11 +50,11 @@ class CPUImitateEnvBase(EnvBase):
         "emulator's score."
 
         assert not (
-            cfg.rands.env.steps == 0 and "env" in cfg.rands.env.transfer
-        ), "'env' in 'cfg.rands.env.transfer' requires "
-        "'cfg.rands.env.steps' > 0"
+            cfg.env.steps == 0 and "env" in cfg.env.transfer
+        ), "'env' in 'cfg.env.transfer' requires "
+        "'cfg.env.steps' > 0"
 
-        assert cfg.rands.merge in ["yes", "no"], "'cfg.rands.merge' "
+        assert cfg.merge in ["yes", "no"], "'cfg.merge' "
         "needs be chosen from one of " + str(["yes", "no"])
 
         super().__init__(cfg, io_path="IO.imitate.sb3", nb_pops=2)
@@ -69,12 +69,12 @@ class CPUImitateEnvBase(EnvBase):
         Returns:
             np.ndarray - The initial environment observation.
         """
-        if isinstance(self.cfg.rands.env.seeding, int):
-            new_seed = self.cfg.rands.env.seeding
+        if isinstance(self.cfg.env.seeding, int):
+            new_seed = self.cfg.env.seeding
         else:
             new_seed = gen_nb
 
-        if "env" in self.cfg.rands.env.transfer:
+        if "env" in self.cfg.env.transfer:
 
             if gen_nb == 0:
                 self.current_actor_data_holder.saved_emulator_seed = new_seed
@@ -99,7 +99,7 @@ class CPUImitateEnvBase(EnvBase):
                     self.current_actor_data_holder.current_episode_nb_steps,
                 )
 
-        else:  # self.cfg.rands.env.transfer in ["no", "fit"]:
+        else:  # self.cfg.env.transfer in ["no", "fit"]:
 
             obs = self.reset_emulator_state(self.current_emulator, new_seed)
 
@@ -123,9 +123,9 @@ class CPUImitateEnvBase(EnvBase):
 
         self.discriminator.reset()
 
-        if "env" in self.cfg.rands.env.transfer:
+        if "env" in self.cfg.env.transfer:
 
-            if self.cfg.rands.wandb_logging:
+            if self.cfg.wandb_logging:
                 if self.current_actor == self.generator:  # sanity check target
                     wandb.log(
                         {
@@ -136,7 +136,7 @@ class CPUImitateEnvBase(EnvBase):
 
                 self.generator.current_episode_score = 0
 
-            if self.cfg.rands.env.seeding == "reg":
+            if self.cfg.env.seeding == "reg":
                 self.current_actor_data_holder.saved_emulator_seed = gen_nb
             self.current_actor_data_holder.current_episode_nb_steps = 0
 
@@ -147,7 +147,7 @@ class CPUImitateEnvBase(EnvBase):
 
             return obs, False
 
-        else:  # self.cfg.rands.env.transfer in ["no", "fit"]:
+        else:  # self.cfg.env.transfer in ["no", "fit"]:
 
             return np.empty(0), True
 
@@ -158,14 +158,14 @@ class CPUImitateEnvBase(EnvBase):
         Args:
             obs - The final environment observation.
         """
-        if "mem" not in self.cfg.rands.env.transfer:
+        if "mem" not in self.cfg.env.transfer:
 
             if self.current_actor == self.generator:
                 self.generator.reset()
 
             self.discriminator.reset()
 
-        if "env" in self.cfg.rands.env.transfer:
+        if "env" in self.cfg.env.transfer:
 
             self.current_actor_data_holder.saved_emulator_state = (
                 self.get_emulator_state(self.current_emulator)
@@ -173,9 +173,9 @@ class CPUImitateEnvBase(EnvBase):
 
             self.current_actor_data_holder.saved_emulator_obs = obs.copy()
 
-        else:  # self.cfg.rands.env.transfer in ["no", "fit"]:
+        else:  # self.cfg.env.transfer in ["no", "fit"]:
 
-            if self.cfg.rands.wandb_logging:
+            if self.cfg.wandb_logging:
                 if self.current_actor == self.generator:  # sanity check target
                     wandb.log(
                         {
@@ -211,7 +211,7 @@ class CPUImitateEnvBase(EnvBase):
             self.current_actor_data_holder.current_run_nb_steps = 0
 
             obs, done, p_imitation_target = self.reset(gen_nb), False, 0
-            hidden_score_obs = self.hide_score(obs, self.cfg.rands.task)
+            hidden_score_obs = self.hide_score(obs, self.cfg.task)
             nb_obs = 0
 
             while not done:
@@ -224,14 +224,14 @@ class CPUImitateEnvBase(EnvBase):
                 obs, rew, done = self.run_emulator_step(
                     self.current_emulator, output
                 )
-                hidden_score_obs = self.hide_score(obs, self.cfg.rands.task)
+                hidden_score_obs = self.hide_score(obs, self.cfg.task)
 
                 nb_obs += 1
 
                 self.current_actor_data_holder.current_run_score += rew
                 self.current_actor_data_holder.current_run_nb_steps += 1
 
-                if "env" in self.cfg.rands.transfer:
+                if "env" in self.cfg.transfer:
                     self.current_actor_data_holder.current_episode_score += rew
                     self.current_actor_data_holder.current_episode_nb_steps += (
                         1
@@ -250,10 +250,10 @@ class CPUImitateEnvBase(EnvBase):
                     if not done:
                         p_imitation_target = 0
 
-                if nb_obs == self.cfg.rands.env.steps:
+                if nb_obs == self.cfg.env.steps:
                     done = True
 
-            p_imitation_target /= self.cfg.rands.steps
+            p_imitation_target /= self.cfg.steps
 
             if self.current_actor == self.generator:
                 generator_fitness += p_imitation_target
@@ -263,16 +263,16 @@ class CPUImitateEnvBase(EnvBase):
 
             self.final_reset(obs)
 
-        if self.cfg.rands.merge == "no":
+        if self.cfg.merge == "no":
             # Scale discriminator fitnesses to [0, 1]
             discriminator_fitness = (discriminator_fitness + 1) / 2
 
-        else:  # self.cfg.rands.merge == "yes":
+        else:  # self.cfg.merge == "yes":
             # Scale generator & discriminator fitnesses to [0, .5]
             generator_fitness = generator_fitness / 2
             discriminator_fitness = (discriminator_fitness + 1) / 4
 
-        if "fit" in self.cfg.rands.transfer:
+        if "fit" in self.cfg.transfer:
 
             self.generator.continual_fitness += generator_fitness
             self.discriminator.continual_fitness += discriminator_fitness

@@ -14,8 +14,8 @@
 
 import gymnasium
 
-from gran.rands.envs.cpu.score.base import CPUScoreEnvBase
-from gran.utils.control import (
+from gran.rands.envs.score import BaseScoreEnv
+from gran.rands.utils.control import (
     get_control_emulator_state,
     get_control_score_tasks,
     get_control_task_name,
@@ -25,7 +25,7 @@ from gran.utils.control import (
 )
 
 
-class Env(CPUScoreEnvBase):
+class Env(BaseScoreEnv):
     def __init__(self, cfg):
 
         self.get_valid_tasks = get_control_score_tasks
@@ -36,6 +36,4 @@ class Env(CPUScoreEnvBase):
 
         super().__init__(cfg)
 
-        self.emulator = gymnasium.make(
-            get_control_task_name(cfg.rands.env.task)
-        )
+        self.emulator = gymnasium.make(get_control_task_name(cfg.env.task))

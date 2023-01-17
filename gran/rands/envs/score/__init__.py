@@ -18,12 +18,12 @@ import numpy as np
 import wandb
 from omegaconf import DictConfig
 
-from gran.rands.envs.base import EnvBase
+from gran.rands.envs import BaseEnv
 
 
-class CPUScoreEnvBase(EnvBase):
+class BaseScoreEnv(BaseEnv):
     """
-    CPU Score Env Base class.
+    Base Score Env class.
     Concrete subclasses need to be named *Env*.
     """
 
@@ -46,38 +46,30 @@ class CPUScoreEnvBase(EnvBase):
         "emulator step given an action."
 
         assert not (
-            cfg.rands.env.steps == 0 and "env" in cfg.rands.env.transfer
-        ), "'env' in 'cfg.rands.env.transfer' requires "
-        "'cfg.rands.env.steps' > 0"
+            cfg.env.steps == 0 and "env" in cfg.env.transfer
+        ), "'env' in 'cfg.env.transfer' requires "
+        "'cfg.env.steps' > 0"
 
         ge_1_int = lambda x: isinstance(x, int) and x >= 1
 
-        assert ge_1_int(cfg.rands.env.trials), "'cfg.rands.trials' needs to "
-        "be an integer >= 1."
-
-        assert not (
-            cfg.rands.env.trials > 1 and "fit" in cfg.rands.env.transfer
-        ), "'cfg.rands.trials' > 1 requires 'cfg.rands.transfer' = 'no'."
-
         super().__init__(cfg, io_path="IO.base", nb_pops=1)
 
-    def reset(self, gen_nb: int, trial_nb: int) -> np.ndarray:
+    def reset(self, gen_nb: int) -> np.ndarray:
         """
         First reset function called during the run.
         Used to reset the emulator & potentially resume from a previous state.
 
         Args:
             gen_nb - Generation number.
-            trial_nb - Trial number.
         Returns:
             np.ndarray - The initial environment observation.
         """
-        if isinstance(self.cfg.rands.env.seeding, int):
-            new_seed = self.cfg.rands.env.seeding
+        if isinstance(self.cfg.env.seeding, int):
+            new_seed = self.cfg.env.seeding
         else:
-            new_seed = gen_nb * self.cfg.rands.env.trials + trial_nb
+            new_seed = gen_nb
 
-        if "env" in self.cfg.rands.env.transfer:
+        if "env" in self.cfg.env.transfer:
 
             if gen_nb == 0:
                 self.bot.saved_emulator_seed = new_seed
@@ -94,7 +86,7 @@ class CPUScoreEnvBase(EnvBase):
 
                 obs = self.bot.saved_emulator_obs.copy()
 
-        else:  # self.cfg.rands.env.transfer in ["no", "fit"]:
+        else:  # self.cfg.env.transfer in ["no", "fit"]:
 
             obs = self.reset_emulator_state(self.emulator, new_seed)
 
@@ -112,9 +104,9 @@ class CPUScoreEnvBase(EnvBase):
         """
         self.bot.reset()
 
-        if "env" in self.cfg.rands.env.transfer:
+        if "env" in self.cfg.env.transfer:
 
-            if self.cfg.rands.wandb_logging:
+            if self.cfg.wandb_logging:
 
                 wandb.log(
                     {"score": self.bot.current_episode_score, "gen": gen_nb}
@@ -122,7 +114,7 @@ class CPUScoreEnvBase(EnvBase):
 
                 self.bot.current_episode_score = 0
 
-            if self.cfg.rands.env.seeding == "reg":
+            if self.cfg.env.seeding == "reg":
                 self.bot.saved_emulator_seed = gen_nb
 
             obs = self.reset_emulator_state(
@@ -131,7 +123,7 @@ class CPUScoreEnvBase(EnvBase):
 
             return obs, False
 
-        else:  # self.cfg.rands.env.transfer in ["no", "fit"]:
+        else:  # self.cfg.env.transfer in ["no", "fit"]:
 
             return np.empty(0), True
 
@@ -142,11 +134,11 @@ class CPUScoreEnvBase(EnvBase):
         Args:
             obs - The final environment observation.
         """
-        if "mem" not in self.cfg.rands.env.transfer:
+        if "mem" not in self.cfg.env.transfer:
 
             self.bot.reset()
 
-        if "env" in self.cfg.rands.env.transfer:
+        if "env" in self.cfg.env.transfer:
 
             self.bot.saved_emulator_state = self.get_emulator_state(
                 self.emulator
@@ -154,9 +146,9 @@ class CPUScoreEnvBase(EnvBase):
 
             self.bot.saved_emulator_obs = obs.copy()
 
-        else:  # self.cfg.rands.env.transfer in ["no", "fit"]:
+        else:  # self.cfg.env.transfer in ["no", "fit"]:
 
-            if self.cfg.rands.wandb_logging:
+            if self.cfg.wandb_logging:
 
                 wandb.log(
                     {
@@ -174,35 +166,33 @@ class CPUScoreEnvBase(EnvBase):
         self.bot.current_run_score = 0
         self.bot.current_run_nb_steps = 0
 
-        for trial in range(self.cfg.rands.env.trials):
+        obs, done, nb_obs = self.reset(gen_nb), False, 0
 
-            obs, done, nb_obs = self.reset(gen_nb, trial), False, 0
+        while not done:
 
-            while not done:
+            obs, rew, done = self.run_emulator_step(
+                self.emulator, self.bot(obs)
+            )
 
-                obs, rew, done = self.run_emulator_step(
-                    self.emulator, self.bot(obs)
-                )
+            nb_obs += 1
 
-                nb_obs += 1
+            self.bot.current_run_score += rew
+            self.bot.current_run_nb_steps += 1
 
-                self.bot.current_run_score += rew
-                self.bot.current_run_nb_steps += 1
+            if "env" in self.cfg.env.transfer:
+                self.bot.current_episode_score += rew
+                self.bot.current_episode_nb_steps += 1
 
-                if "env" in self.cfg.rands.env.transfer:
-                    self.bot.current_episode_score += rew
-                    self.bot.current_episode_nb_steps += 1
+            if done:
+                obs, done = self.done_reset(gen_nb)
+                nb_obs = 0
 
-                if done:
-                    obs, done = self.done_reset(gen_nb)
-                    nb_obs = 0
+            if nb_obs == self.cfg.env.steps:
+                done = True
 
-                if nb_obs == self.cfg.rands.env.steps:
-                    done = True
+        self.final_reset(obs)
 
-            self.final_reset(obs)
-
-        if "fit" in self.cfg.rands.env.transfer:
+        if "fit" in self.cfg.env.transfer:
 
             self.bot.continual_fitness += self.bot.current_run_score
 

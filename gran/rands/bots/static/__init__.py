@@ -14,12 +14,12 @@
 
 import torch
 
-from gran.rands.bots.cpu.base import CPUBotBase
+from gran.rands.bots import BaseBot
 
 
-class StaticCPUBotBase(CPUBotBase):
+class BaseStaticBot(BaseBot):
     """
-    Static CPU Bot Base class.
+    Base Static Bot class.
     Concrete subclasses need to be named *Bot*.
     """
 
@@ -47,6 +47,6 @@ class StaticCPUBotBase(CPUBotBase):
         """
         for param in self.net.parameters():
 
-            param.data += self.cfg.rands.bots.static.sigma * torch.randn_like(
+            param.data += self.cfg.bots.static.sigma * torch.randn_like(
                 param.data
             )

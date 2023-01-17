@@ -14,8 +14,8 @@
 
 import gymnasium
 
-from gran.rands.envs.cpu.imitate.base import CPUImitateEnvBase
-from gran.utils.control import (
+from gran.rands.envs.imitate import BaseImitateEnv
+from gran.rands.utils.control import (
     get_control_emulator_state,
     get_control_imitate_tasks,
     get_control_task_name,
@@ -26,7 +26,7 @@ from gran.utils.control import (
 )
 
 
-class Env(CPUImitateEnvBase):
+class Env(BaseImitateEnv):
     def __init__(self, cfg):
 
         self.get_valid_tasks = get_control_imitate_tasks
@@ -38,8 +38,6 @@ class Env(CPUImitateEnvBase):
 
         super().__init__(cfg)
 
-        self.emulators = [
-            gymnasium.make(get_control_task_name(cfg.rands.env.task))
-        ]
+        self.emulators = [gymnasium.make(get_control_task_name(cfg.env.task))]
 
         self.target = self.io.load_target()

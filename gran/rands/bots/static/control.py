@@ -15,13 +15,13 @@
 import numpy as np
 import torch
 
-from gran.rands.bots.cpu.static.base import StaticCPUBotBase
+from gran.rands.bots.static import BaseStaticBot
 from gran.rands.nets.static.cpu import Net
-from gran.utils.control import get_control_task_info
+from gran.rands.utils.control import get_control_task_info
 from gran.rands.utils.misc import update_running_mean_std
 
 
-class Bot(StaticCPUBotBase):
+class Bot(BaseStaticBot):
     def initialize__(self):
 
         if self.pop_idx == 0:
@@ -29,11 +29,11 @@ class Bot(StaticCPUBotBase):
         else:  # self.pop_idx == 1:
             self.function = "discriminator"
 
-        info = get_control_task_info(self.cfg.rands.env.task)
+        info = get_control_task_info(self.cfg.env.task)
         d_input, d_output, self.discrete_output, self.output_bound = info
-        recurrent = self.cfg.rands.bots.static.recurrent
+        recurrent = self.cfg.bots.static.recurrent
 
-        if self.cfg.rands.merge:
+        if self.cfg.merge:
 
             self.net = Net(
                 [d_input, 50, 50, d_output + 1], recurrent=recurrent
@@ -77,7 +77,7 @@ class Bot(StaticCPUBotBase):
 
         x = x.numpy().squeeze(axis=0)
 
-        if self.cfg.rands.merge:
+        if self.cfg.merge:
             x = x[:-1] if self.function == "generator" else x[-1]  # discrim
 
         if self.function == "generator":

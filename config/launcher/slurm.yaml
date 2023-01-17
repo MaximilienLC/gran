@@ -3,4 +3,4 @@ account: rrg-pbellec
 cpus_per_task: ${rands.nb_mpi_processes}
 mem_per_cpu: 4G
 setup:
-  - module load apptainer/1.1.3
+  - module load apptainer

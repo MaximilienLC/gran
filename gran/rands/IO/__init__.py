@@ -18,10 +18,11 @@ import pickle
 from omegaconf import DictConfig
 
 
-class IOBase:
+class BaseIO:
     """
-    IO Base class. IO objects are used to handle input/output files. Concrete
-    subclasses need to be named *IO* (a default subclass is defined below).
+    Base IO class.
+    Concrete subclasses need to be named *IO*.
+    A default subclass is defined below.
     """
 
     def __init__(self, cfg: DictConfig):
@@ -38,24 +39,21 @@ class IOBase:
         Method called upon object initialization. Sets up points at which to
         save the experiment's current state.
         """
-        assert self.cfg.rands.save_frequency in range(
-            0, self.cfg.rands.nb_generations
-        ), "'cfg.rands.save_frequency' needs to be in range [0, nb_gen]."
+        assert self.cfg.save_frequency in range(
+            0, self.cfg.nb_generations
+        ), "'cfg.save_frequency' needs to be in range [0, nb_gen]."
 
         self.save_points = [
-            self.cfg.rands.nb_elapsed_generations
-            + self.cfg.rands.nb_generations
+            self.cfg.nb_elapsed_generations + self.cfg.nb_generations
         ]
 
-        if self.cfg.rands.save_frequency == 0:
+        if self.cfg.save_frequency == 0:
             return
 
-        for i in range(
-            self.cfg.rands.nb_generations // self.cfg.rands.save_frequency
-        ):
+        for i in range(self.cfg.nb_generations // self.cfg.save_frequency):
             self.save_points.append(
-                self.cfg.rands.nb_elapsed_generations
-                + self.cfg.rands.save_frequency * (i + 1)
+                self.cfg.nb_elapsed_generations
+                + self.cfg.save_frequency * (i + 1)
             )
 
     def load_state(self) -> list:
@@ -96,5 +94,5 @@ class IOBase:
             pickle.dump(state, f)
 
 
-class IO(IOBase):
+class IO(BaseIO):
     pass

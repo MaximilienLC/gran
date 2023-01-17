@@ -14,12 +14,12 @@
 
 import numpy as np
 
-from gran.rands.bots.cpu.base import CPUBotBase
+from gran.rands.bots import BaseBot
 
 
-class DynamicCPUBotBase(CPUBotBase):
+class BaseDynamicBot(BaseBot):
     """
-    Dynamic CPU Bot Base class.
+    Base Dynamic Bot class.
     Concrete subclasses need to be named *Bot*.
     """
 

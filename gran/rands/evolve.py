@@ -12,85 +12,44 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Genetic algorithm of the Grads, Rands & Nets library (a.k.a. Gran).
-Forked and executed by as many CPU processes as are provided through
-`cfg.rands.nb_mpi_processes`.
-
-CPU processes communicate at regular intervals through `mpi4py` send, gather &
-scatter operations
-
-At its core, this genetic algorithm loops over three stages: mutation,
-evaluation & selection. The computational workload of the mutation stage is
-spread across all CPU processes. The work required for the evaluation stage is
-then either scattered across all CPU processes, or instead sent to specific
-CPU processes for 1-to-1 CPU-to-GPU communication (in the case that GPU devices
-are provided and compatible with the given task). Finally, the selection stage
-is performed by the main process.
-"""
+import copy
+from importlib import import_module
 import os
+import pickle
 import sys
+import time
 
-import hydra
-from hydra.core.hydra_config import HydraConfig
-from omegaconf import DictConfig, OmegaConf
-
-
-@hydra.main(
-    version_base=None, config_path="../../config", config_name="config"
-)
-def fork(cfg: DictConfig):
-
-    import subprocess
-
-    env = os.environ.copy()
-    env.update(MKL_NUM_THREADS="1", OMP_NUM_THREADS="1", INSIDE_MPI_FORK="1")
-
-    # --allow-run-as-root needed to run inside Docker
-    subprocess.check_call(
-        [
-            "mpiexec",
-            "--allow-run-as-root",  # For Docker
-            "--oversubscribe",  # For Submitit
-            "-n",
-            str(cfg.rands.nb_mpi_processes),
-            sys.executable,
-            script,
-            str(cfg),
-            str(HydraConfig.get().runtime.output_dir),
-        ],
-        env=env,
-    )
+from mpi4py import MPI
+import numpy as np
+from omegaconf import OmegaConf
+import torch
+import wandb
 
 
-def main():
+def evolve():
+    """
+    Imports inside function for Submitit ease of use.
+    """
 
-    import copy
-    from importlib import import_module
-    import pickle
-    import time
-
-    from mpi4py import MPI
-    import numpy as np
-    import torch
-    import wandb
-
+    """
+    Process arguments created by forking process.
+    """
     cfg = OmegaConf.create(sys.argv[1])
     os.chdir(sys.argv[2])
 
     """
-    Initialization of various MPI & GA-specific variables.
+    Initialization of various MPI & EA-specific variables.
     """
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
     nb_gpus = torch.cuda.device_count()
 
-    assert cfg.rands.population_size % size == 0, ""
-    "'cfg.rands.population_size' must be a multiple of "
-    "'cfg.rands.nb_mpi_processes'."
+    assert cfg.population_size % size == 0, ""
+    "'cfg.population_size' must be a multiple of "
+    "'cfg.nb_mpi_processes'."
 
-    if cfg.rands.wandb_logging:
+    if cfg.wandb_logging:
 
         os.environ["WANDB_SILENT"] = "true"
 
@@ -103,11 +62,11 @@ def main():
         wandb_group_id = comm.bcast(wandb_group_id, root=0)
         wandb.init(group=wandb_group_id)
 
-    env = getattr(import_module(cfg.rands.env_path), "Env")(cfg)
+    env = getattr(import_module(cfg.env_path), "Env")(cfg)
 
-    old_nb_gen = cfg.rands.nb_elapsed_generations
-    new_nb_gen = cfg.rands.nb_generations
-    pop_size = cfg.rands.population_size
+    old_nb_gen = cfg.nb_elapsed_generations
+    new_nb_gen = cfg.nb_generations
+    pop_size = cfg.population_size
     bots_batch_size = pop_size // size
     nb_pops = env.nb_pops
 
@@ -202,65 +161,75 @@ def main():
         """
         if gen_nb > 0:
 
-            if rank == 0:
+            if cfg.alg == "es":
 
-                # MPI buffer size
-                pairings[:, :, 0] = np.max(generation_results[:, :, 2])
+                comm.Bcast(new_weights, root=0)
 
-                for j in range(nb_pops):
+            else:  # if cfg.alg == "ga":
 
-                    pair_ranking = (
-                        fitnesses_rankings[:, j] + pop_size // 2
-                    ) % pop_size
+                if rank == 0:
 
-                    # pair position
-                    pairings[:, j, 1] = fitnesses_sorting_indices[:, j][
-                        pair_ranking
-                    ]
+                    # MPI buffer size
+                    pairings[:, :, 0] = np.max(generation_results[:, :, 2])
 
-                # sending
-                pairings[:, :, 2] = np.greater_equal(
-                    fitnesses_rankings, pop_size // 2
-                )
+                    for j in range(nb_pops):
 
-            comm.Scatter(pairings, pairings_batch, root=0)
+                        pair_ranking = (
+                            fitnesses_rankings[:, j] + pop_size // 2
+                        ) % pop_size
 
-            """
-            Processes exchange bots 
-            """
-            req = []
+                        # pair position
+                        pairings[:, j, 1] = fitnesses_sorting_indices[:, j][
+                            pair_ranking
+                        ]
 
-            for i in range(bots_batch_size):
+                    # sending
+                    pairings[:, :, 2] = np.greater_equal(
+                        fitnesses_rankings, pop_size // 2
+                    )
 
-                for j in range(nb_pops):
+                comm.Scatter(pairings, pairings_batch, root=0)
 
-                    pair = int(pairings_batch[i, j, 1] // bots_batch_size)
+                """
+                Processes exchange bots 
+                """
+                req = []
 
-                    if pairings_batch[i, j, 2] == 1:  # sending
+                for i in range(bots_batch_size):
 
-                        tag = int(pop_size * j + bots_batch_size * rank + i)
+                    for j in range(nb_pops):
 
-                        req.append(
-                            comm.isend(bots_batch[i][j], dest=pair, tag=tag)
-                        )
+                        pair = int(pairings_batch[i, j, 1] // bots_batch_size)
 
-                    else:  # pairing_and_seeds_batch[i, j, 2] == 0: # receiving
+                        if pairings_batch[i, j, 2] == 1:  # sending
 
-                        tag = int(pop_size * j + pairings_batch[i, j, 1])
-
-                        req.append(
-                            comm.irecv(
-                                pairings_batch[i, j, 0],
-                                source=pair,
-                                tag=tag,
+                            tag = int(
+                                pop_size * j + bots_batch_size * rank + i
                             )
-                        )
 
-            received_bots = MPI.Request.waitall(req)
+                            req.append(
+                                comm.isend(
+                                    bots_batch[i][j], dest=pair, tag=tag
+                                )
+                            )
 
-            for i, bot in enumerate(received_bots):
-                if bot is not None:
-                    bots_batch[i // nb_pops][i % nb_pops] = bot
+                        else:  # pairing_and_seeds_batch[i, j, 2] == 0: # receiving
+
+                            tag = int(pop_size * j + pairings_batch[i, j, 1])
+
+                            req.append(
+                                comm.irecv(
+                                    pairings_batch[i, j, 0],
+                                    source=pair,
+                                    tag=tag,
+                                )
+                            )
+
+                received_bots = MPI.Request.waitall(req)
+
+                for i, bot in enumerate(received_bots):
+                    if bot is not None:
+                        bots_batch[i // nb_pops][i % nb_pops] = bot
 
         """
         Variation.
@@ -331,7 +300,7 @@ def main():
 
             fitnesses = generation_results[:, :, 0]
 
-            if cfg.rands.merge == "yes":
+            if cfg.merge == "yes":
                 fitnesses[:, 0] += fitnesses[:, 1][::-1]
                 fitnesses[:, 1] = fitnesses[:, 0][::-1]
 
@@ -370,17 +339,3 @@ def main():
                 )
 
     wandb.finish()
-
-
-if __name__ == "__main__":
-
-    if os.getenv("INSIDE_MPI_FORK"):  # Worker process
-
-        main()
-
-    else:  # Forking process
-
-        global script
-        script = sys.argv[0]
-
-        fork()

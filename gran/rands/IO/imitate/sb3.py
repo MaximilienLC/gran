@@ -15,9 +15,9 @@
 from sb3_contrib import TQC
 from stable_baselines3 import DQN, PPO, SAC, TD3
 
-from gran.rands.IO.imitate.base import ImitateIOBase, TargetBase
+from gran.rands.IO.imitate import ImitateIOBase, TargetBase
 from gran.utils.atari import get_atari_task_name, get_atari_imitation_tasks
-from gran.utils.control import (
+from gran.rands.utils.control import (
     get_control_task_name,
     get_control_imitation_tasks,
 )

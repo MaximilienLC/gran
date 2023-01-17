@@ -83,7 +83,7 @@ def main(args):
     if "control" in env_path:
 
         import gym
-        from gran.utils.control import get_control_task_name
+        from gran.rands.utils.control import get_control_task_name
 
         emulator = gym.make(get_control_task_name(task))
 

@@ -6,8 +6,6 @@ FROM nvcr.io/nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu22.04
 ENV DEBIAN_FRONTEND=noninteractive 
 # Prevents Python from creating __pycache__ and .pyc files in project folder
 ENV PYTHONPYCACHEPREFIX=/.cache/python/
-# Append library path for import
-ENV PYTHONPATH=="${PYTHONPATH}:/gran"
 
 RUN apt-get update && apt-get install -y \
     wget \

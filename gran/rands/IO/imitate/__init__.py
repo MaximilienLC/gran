@@ -15,7 +15,7 @@
 from abc import abstractmethod
 from typing import Any
 
-from gran.rands.IO.base import IOBase
+from gran.rands.IO import IOBase
 
 
 class TargetBase:

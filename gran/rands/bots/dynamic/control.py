@@ -14,13 +14,13 @@
 
 import numpy as np
 
-from gran.rands.bots.cpu.dynamic.base import DynamicCPUBotBase
+from gran.rands.bots.dynamic import BaseDynamicBot
 from gran.rands.nets.dynamic import Net
-from gran.utils.control import get_control_task_info
+from gran.rands.utils.control import get_control_task_info
 from gran.rands.utils.misc import update_running_mean_std
 
 
-class Bot(DynamicCPUBotBase):
+class Bot(BaseDynamicBot):
     def initialize__(self):
 
         if self.pop_idx == 0:
@@ -28,10 +28,10 @@ class Bot(DynamicCPUBotBase):
         else:  # self.pop_idx == 1:
             self.function = "discriminator"
 
-        info = get_control_task_info(self.cfg.rands.env.task)
+        info = get_control_task_info(self.cfg.env.task)
         d_input, d_output, self.discrete_output, self.output_bound = info
 
-        if self.cfg.rands.merge:
+        if self.cfg.merge:
 
             self.net = Net(d_input, d_output + 1)
 
@@ -68,7 +68,7 @@ class Bot(DynamicCPUBotBase):
 
         x = np.array(x).squeeze(axis=1)
 
-        if self.cfg.rands.merge:
+        if self.cfg.merge:
             x = x[:-1] if self.function == "generator" else x[-1]  # discrim
 
         if self.function == "generator":
