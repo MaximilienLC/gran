@@ -36,11 +36,11 @@ parser.add_argument(
     required=True,
     help="Path to the saved state <=> "
     "data/states/<env_path>/<extra_arguments>/"
-    "<bots_path>/<population_size>/<generation>/",
+    "<bot_path>/<pop_size>/<gen>/",
 )
 
 parser.add_argument(
-    "--nb_tests",
+    "--num_tests",
     "-t",
     type=int,
     default=1,
@@ -48,7 +48,7 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--nb_obs",
+    "--num_obs",
     "-o",
     type=int,
     default=2**31 - 1,
@@ -89,9 +89,9 @@ split_path = args.state_path.split("/")
 
 env_path = split_path[-5]
 extra_arguments = split_path[-4]
-bots_path = split_path[-3]
+bot_path = split_path[-3]
 pop_size = int(split_path[-2])
-generation = int(split_path[-1])
+gen = int(split_path[-1])
 
 split_extra_arguments = extra_arguments.split("~")
 
@@ -177,30 +177,30 @@ Import bots
 
 if "gym" in env_path:
 
-    if "dynamic" in bots_path:
+    if "dynamic" in bot_path:
         from bots.netted.dynamic.rnn.control import Bot
-    else:  # 'static' in bots_path:
+    else:  # 'static' in bot_path:
         from bots.netted.static.rnn.control import Bot
 
 elif "atari" in env_path:
 
-    if "dynamic" in bots_path:
+    if "dynamic" in bot_path:
         from bots.netted.dynamic.conv_rnn.atari import Bot
-    else:  # 'static' in bots_path:
+    else:  # 'static' in bot_path:
         from bots.netted.static.conv_rnn.atari import Bot
 
 elif "retro" in env_path:
 
-    if "dynamic" in bots_path:
+    if "dynamic" in bot_path:
         from bots.netted.dynamic.conv_rnn.retro import Bot
-    else:  # 'static' in bots_path:
+    else:  # 'static' in bot_path:
         from bots.netted.static.conv_rnn.retro import Bot
 
 else:  # 'gravity' in env_path:
 
-    if "dynamic.conv_rnn" in bots_path:
+    if "dynamic.conv_rnn" in bot_path:
         from bots.netted.dynamic.conv_rnn.gravity import Bot
-    else:  # 'static.conv_rnn' in bots_path:
+    else:  # 'static.conv_rnn' in bot_path:
         from bots.netted.static.conv_rnn.gravity import Bot
 
 """
@@ -278,16 +278,16 @@ else:  # len(state) == 4:
 
 bot.setup_to_run()
 
-rewards = np.empty((args.nb_tests, 0)).tolist()
+rewards = np.empty((args.num_tests, 0)).tolist()
 
-if "dynamic.rnn" in bots_path:
+if "dynamic.rnn" in bot_path:
     with open(args.state_path + "/net.pkl", "wb") as f:
         pickle.dump(str(bot.nets[0].nodes["layered"]), f)
 
 if hasattr(bot, "n"):
     print(bot.n)
 
-for i in range(args.nb_tests):
+for i in range(args.num_tests):
 
     print("Test #" + str(i))
 
@@ -305,13 +305,13 @@ for i in range(args.nb_tests):
 
     else:  # 'gravity' in env_path:
 
-        nb_obs_fed_to_generator = 3 if task == "predict" else 1  # 'generate'
+        num_obs_fed_to_generator = 3 if task == "predict" else 1  # 'generate'
         data_point = np.random.choice(data)
         output[i, 3:] = data_point
 
     score = 0
 
-    for j in range(args.nb_obs):
+    for j in range(args.num_obs):
 
         if "gravity" not in env_path:
 
@@ -328,7 +328,7 @@ for i in range(args.nb_tests):
 
         else:  # 'gravity' in env_path:
 
-            if j < nb_obs_fed_to_generator:
+            if j < num_obs_fed_to_generator:
                 obs = data_point[j]
 
             obs = bot(obs)
