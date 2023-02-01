@@ -7,3 +7,6 @@ data/
 wandb_key.txt
 ps.py
 outputs/
+venv/
+image.sif
+image.tar

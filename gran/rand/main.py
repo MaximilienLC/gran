@@ -20,9 +20,6 @@ import hydra
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, OmegaConf
 
-from gran.rand.evolve import evolve
-from gran.rand.evaluate import evaluate
-
 
 @hydra.main(version_base=None, config_path="../../config", config_name="rand")
 def fork(cfg: DictConfig):
@@ -55,8 +52,11 @@ if __name__ == "__main__":
         assert cfg.stage in ["train", "test"]
 
         if cfg.stage == "train":
+            from gran.rand.evolve import evolve
             evolve()
+            
         else:  # cfg.stage == "test":
+            from gran.rand.evaluate import evaluate
             evaluate()
 
     else:
