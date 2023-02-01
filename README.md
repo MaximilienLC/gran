@@ -106,7 +106,7 @@ tmux
 cd ${SCRATCH}/gran
 . venv/bin/activate
 pip install -e .
-python3 gran/rand/main.py
+#python3 gran/rand/main.py
 ```
 
 
