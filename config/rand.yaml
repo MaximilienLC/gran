@@ -18,7 +18,7 @@ seed: -1
 num_steps: -1
 
 alg: ga
-bot_path: bot.dynamic.control
+bot_path: bot.static.control
 
 transfer: none
 merge: False
@@ -66,3 +66,5 @@ hydra:
 
           - num_tests
           - num_steps_per_test
+
+          - launcher

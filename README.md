@@ -1,13 +1,13 @@
 # Gran: Grads, Rands & Neural Nets
 
-## Setting up the repository
+## I. Setting up the repository
 
 ### Step 1. Building the Docker / Apptainer images locally
 
-(If you are in the `rrg-pbellec` Alliance Canada group you can skip Step 1)  
+**(If you are in the `rrg-pbellec` Alliance Canada group, skip to Step 2)**  
   
 The following instructions define the full dependency installation steps on **Ubuntu** to ensure reproducibility across platforms.  
-We only outline the full-guide with container technologies Docker & Apptainer (Singularity). 
+We only outline the full-guide with container technologies Docker & Apptainer (Singularity).  
 However you can probably install this repository in fewer steps if softwares like CUDA/cuDNN and Python packages are already installed on your system.  
 For the sake of simplicity & reproducibility, we however recommend you follow this guide.
 
@@ -16,7 +16,7 @@ Install the deb Docker package (can also install from the official website: [[li
 ```
 sudo apt-get install -y docker.io
 ```
-Give yourself docker permissions to not require sudo privileges
+Give yourself docker permissions to not require sudo privileges for docker later on.
 ```
 sudo groupadd docker
 sudo usermod -aG docker ${USER}
@@ -59,14 +59,13 @@ docker build -f docker/Dockerfile -t gran:latest .
 
 #### v. Apptainer (skip if you have sudo privileges on your cloud cluster)
 
-##### Install
+Setup the package repository and install it
 ```
 sudo add-apt-repository -y ppa:apptainer/ppa
 sudo apt-get update
 sudo apt-get install -y apptainer
 ```
-
-##### Convert the Docker image to a Singularity/Apptainer file
+Convert the Docker image to a Singularity/Apptainer file
 ```
 docker save gran:latest -o image.tar
 apptainer build image.sif docker-archive://image.tar
@@ -84,21 +83,26 @@ python3 -m venv ${SCRATCH}/gran/venv
 . ${SCRATCH}/gran/venv/bin/activate
 pip install -r ${SCRATCH}/gran/reqs/hydra_reqs.txt
 ```
-Hard-coding Submitit fix to run with Apptainer
+Hard-coded fix to run Python through Apptainer using Submitit
 ```
-sed -i "s|shlex.quote(sys.executable)|\"apptainer exec --nv --bind ${SCRATCH}\/gran:${SCRATCH}\/gran --pwd ${SCRATCH}\/gran ${SCRATCH}\/gran\/image.sif --env PYTHONPATH=\${PYTHONPATH}:${SCRATCH}\/gran python3\"|" ${SCRATCH}/gran/venv/lib/python3.10/site-packages/submitit/slurm/slurm.py
+sed -i "s|shlex.quote(sys.executable)|\"apptainer exec --nv --bind ${SCRATCH}\/gran:${SCRATCH}\/gran --pwd ${SCRATCH}\/gran --env PYTHONPATH=\${PYTHONPATH}:${SCRATCH}\/gran ${SCRATCH}\/gran\/image.sif python3\"|" ${SCRATCH}/gran/venv/lib/python3.10/site-packages/submitit/slurm/slurm.py
 ```
 
-#### ii. Copy over the Apptainer image
+#### ii. Retrieve the Docker and Apptainer images (rrg-pbellec group only)
+Set-up your account variables
 ```
-LOCAL_USER=max
-AC_USER=mleclei
-AC_CLUSTER=beluga.computecanada.ca
-scp ${AC_USER}@${AC_CLUSTER}:/scratch/image.tar .
-
+AC_USER=stavb
+```
+Copy the Docker and Apptainer images into your repository
+```
 cp /scratch/mleclei/gran/image.tar /scratch/${AC_USER}/gran/image.tar
 cp /scratch/mleclei/gran/image.sif /scratch/${AC_USER}/gran/image.sif
 ```
+Transfer the Docker image back to your local machine
+```
+scp ${AC_USER}@$beluga.computecanada.ca:/scratch/image.tar .
+```
+
 
 ### Step 3. Execute the sample code
 ```
