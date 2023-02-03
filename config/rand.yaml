@@ -3,7 +3,7 @@ num_mpi_procs: 4
 
 pop_size: 4
 prev_num_gens: 0
-num_gens: 100
+num_gens: 5
 
 save_frequency: 0
 wandb_logging: false

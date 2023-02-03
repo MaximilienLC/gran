@@ -1,6 +1,6 @@
 # @package hydra.launcher
 account: rrg-pbellec
-cpus_per_task: ${rand.num_mpi_procs}
+cpus_per_task: ${num_mpi_procs}
 mem_per_cpu: 4G
 setup:
-  - module load apptainer
+  - module load apptainer/1.0
