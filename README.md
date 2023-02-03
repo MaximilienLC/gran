@@ -2,6 +2,12 @@
 
 ## I. Setting up the repository
 
+### Step 0. Cloning the repository locally
+
+```
+git clone git@github.com:MaximilienLC/gran.git
+```
+
 ### Step 1. Building the Docker / Apptainer images locally
 
 **(If you are in the `rrg-pbellec` Alliance Canada group, skip to Step 2)**  
@@ -50,14 +56,14 @@ sudo systemctl restart docker
   
 Installation for other mediums: [[link](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)]
 
-#### iv. Clone the repository and build the Docker image
+#### iv. Build the Docker image
+
 ```
-git clone git@github.com:MaximilienLC/gran.git
 cd gran/
 docker build -f docker/Dockerfile -t gran:latest .
 ```
 
-#### v. Apptainer (skip if you have sudo privileges on your cloud cluster)
+#### v. Build the Apptainer image (skip if you have sudo privileges on your cloud cluster)
 
 Setup the package repository and install it
 ```
@@ -98,32 +104,41 @@ Copy the Docker and Apptainer images into your repository
 cp /scratch/mleclei/gran/image.tar /scratch/${AC_USER}/gran/image.tar
 cp /scratch/mleclei/gran/image.sif /scratch/${AC_USER}/gran/image.sif
 ```
-Transfer the Docker image back to your local machine
-```
-scp ${AC_USER}@$beluga.computecanada.ca:/scratch/image.tar .
-```
-
 
 ### Step 3. Execute the sample code
+
+#### i. On your local machine
+
+Transfer the Docker image back to your local machine (rrg-pbellec group only)
+```
+scp ${AC_USER}@$beluga.computecanada.ca:/scratch/image.tar .
+docker load -i image.tar
+```
+Start the Docker container
+```
+GRAN_PATH=/home/stav/gran
+#                       MPI in Docker   JNotebook                                                              RAM access
+docker run --name granc --privileged -p 8888:8888 --gpus=all -it -v ${GRAN_PATH}:${GRAN_PATH} -w ${GRAN_PATH} -v /dev/shm/:/dev/shm/  gran:latest
+```
+Run
+```
+python3 gran/rand/main.py
+```
+
+#### ii. On a SLURM cluster
+
+Activate the virtual environment
 ```
 tmux
 cd ${SCRATCH}/gran
 . venv/bin/activate
-pip install -e .
-#python3 gran/rand/main.py
+```
+Run
+```
+python3 gran/rand/main.py -m hydra/launcher=submitit_slurm +launcher=slurm
 ```
 
-
-### Optional step 1. Build a container from the local Docker image
-#### Copy back the 
-
-
-```
-#                       MPI in Docker   JNotebook                                                              RAM access
-docker run --name granc --privileged -p 8888:8888 --gpus=all -it -v /home/max/Dropbox/gran:/gran -w /gran -v /dev/shm/:/dev/shm/  gran:latest
-```
-
-### Optional step 2. Build a container from the local Docker image
+### (Optional) Step 4. Start a Jupyter Notebook
 ```
 jupyter notebook --allow-root --ip 0.0.0.0
 ```
