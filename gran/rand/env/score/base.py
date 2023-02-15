@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ class BaseScoreEnv(BaseEnv):
     """
 
     def __init__(self) -> None:
-
         assert hasattr(self, "get_emulator_state"), "Attribute "
         "'get_emulator_state' required: a function that returns the "
         "emulator's state."
@@ -65,7 +64,6 @@ class BaseScoreEnv(BaseEnv):
             new_seed = curr_gen
 
         if "env" in cfg.transfer:
-
             if curr_gen == 0:
                 self.bot.saved_emulator_seed = new_seed
 
@@ -74,7 +72,6 @@ class BaseScoreEnv(BaseEnv):
             )
 
             if curr_gen > 0:
-
                 self.set_emulator_state(
                     self.emulator, self.bot.saved_emulator_state
                 )
@@ -82,7 +79,6 @@ class BaseScoreEnv(BaseEnv):
                 obs = self.bot.saved_emulator_obs.copy()
 
         else:  # cfg.transfer in ["no", "fit"]:
-
             obs = self.reset_emulator_state(self.emulator, new_seed)
 
         return obs
@@ -100,9 +96,7 @@ class BaseScoreEnv(BaseEnv):
         self.bot.reset()
 
         if "env" in cfg.transfer:
-
             if cfg.wandb_logging:
-
                 wandb.log(
                     {"score": self.bot.curr_episode_score, "gen": curr_gen}
                 )
@@ -116,7 +110,6 @@ class BaseScoreEnv(BaseEnv):
             return obs, False
 
         else:  # cfg.transfer in ["no", "fit"]:
-
             return np.empty(0), True
 
     def final_reset(self, obs: np.ndarray) -> None:
@@ -127,11 +120,9 @@ class BaseScoreEnv(BaseEnv):
             obs - The final environment observation.
         """
         if "mem" not in cfg.transfer:
-
             self.bot.reset()
 
         if "env" in cfg.transfer:
-
             self.bot.saved_emulator_state = self.get_emulator_state(
                 self.emulator
             )
@@ -139,9 +130,7 @@ class BaseScoreEnv(BaseEnv):
             self.bot.saved_emulator_obs = obs.copy()
 
         else:  # cfg.transfer in ["no", "fit"]:
-
             if cfg.wandb_logging:
-
                 wandb.log(
                     {
                         "score": self.bot.curr_run_score,
@@ -150,7 +139,6 @@ class BaseScoreEnv(BaseEnv):
                 )
 
     def run_bots(self, curr_gen: int) -> float:
-
         assert hasattr(self, "emulator"), "Attribute "
         "'emulator' required: the emulator to run the agents on."
 
@@ -161,7 +149,6 @@ class BaseScoreEnv(BaseEnv):
         obs, done, num_obs = self.reset(curr_gen), False, 0
 
         while not done:
-
             obs, rew, done = self.run_emulator_step(
                 self.emulator, self.bot(obs)
             )
@@ -185,7 +172,6 @@ class BaseScoreEnv(BaseEnv):
         self.final_reset(obs)
 
         if "fit" in cfg.transfer:
-
             self.bot.continual_fitness += self.bot.curr_run_score
 
             return np.array(

@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,7 +43,6 @@ class BaseEnv(ABC):
         self.evaluates_on_gpu = False
 
     def verify_task_and_transfer(self) -> None:
-
         assert hasattr(self, "valid_tasks"), "Envs require the attribute "
         "'valid_tasks': a list of all valid tasks."
 

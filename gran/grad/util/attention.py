@@ -6,7 +6,6 @@ import torch.nn.functional as F
 
 @dataclass
 class TransformerConfig:
-
     num_layers: int
     num_heads: int
     embd_dim: int
@@ -30,7 +29,6 @@ class MultiHeadAttention(nn.Module):
         self.proj = nn.Linear(cfg.embd_dim, cfg.embd_dim, bias=False)
 
     def forward(self, x, kv_cache):
-
         # (BS, SL, ED)
         batch_size, seq_len, embd_dim = x.shape
         head_size = embd_dim // cfg.num_heads
@@ -109,7 +107,6 @@ class GPT(nn.Module):
         self.lm_head = nn.Linear(cfg.embd_dim, cfg.vocab_size, bias=False)
 
     def forward(self, idx):
-
         batch_size, seq_len = idx.size()
 
         tok_embd = self.tok_embd(idx)
@@ -122,11 +119,9 @@ class GPT(nn.Module):
         return x
 
     def generate(self, idx, max_new_tokens=10):
-
         batch_size, seq_len = idx.size()
 
         for _ in range(max_new_tokens):
-
             logits = self.forward(x)[:, -1, :]
             probs = F.softmax(logits, dim=-1)
             x = torch.cat(

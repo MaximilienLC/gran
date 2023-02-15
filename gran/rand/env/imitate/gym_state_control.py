@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ from gran.util.misc import cfg
 
 class Env(BaseImitateEnv):
     def __init__(self):
-
         self.valid_tasks = imitation_tasks
         self.hide_score = hide_score
         self.get_emulator_state = get_emulator_state

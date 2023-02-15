@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ parser.add_argument("--to_npy", action="store_true")
 args = parser.parse_args()
 
 if ".npy" in args.file:
-
     file = args.file.replace(".npy", "")
 
     args.to_npy = False
@@ -41,7 +40,6 @@ if ".npy" in args.file:
     npy_key_log = np.load(args.file)
 
 if ".bk2" in args.file:
-
     file = args.file.replace(".bk2", "")
 
     key_log = retro.Movie(args.file)
@@ -63,7 +61,6 @@ np.random.seed(0)
 i = 0
 more = True
 while True:
-
     if ".bk2" in args.file:
         more = key_log.step()
         action = [key_log.get_key(i, 0) for i in range(env.num_buttons)]

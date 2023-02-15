@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,16 +34,13 @@ class Target(BaseTarget):
 
 class IO(BaseImitateIO):
     def __init__(self):
-
         super().__init__()
 
         if cfg.task in ["acrobot", "mountain_car"]:
-
             self.model = DQN
             self.model_name = "dqn"
 
         elif cfg.task in ["cart_pole", "lunar_lander"]:
-
             self.model = PPO
             self.model_name = "ppo"
 
@@ -52,12 +49,10 @@ class IO(BaseImitateIO):
             "lunar_lander_continuous",
             "humanoid",
         ]:
-
             self.model = SAC
             self.model_name = "sac"
 
         elif cfg.task in ["ant", "swimmer", "walker_2d"]:
-
             self.model = TD3
             self.model_name = "td3"
 
@@ -68,12 +63,10 @@ class IO(BaseImitateIO):
             "half_cheetah",
             "hopper",
         ]:
-
             self.model = TQC
             self.model_name = "tqc"
 
     def load_target(self):
-
         dict = {
             "learning_rate": 0.0,
             "lr_schedule": lambda _: 0.0,

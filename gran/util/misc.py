@@ -13,17 +13,62 @@
 # limitations under the License.
 
 import os
+from typing import Union
 
 import numpy as np
 from omegaconf import OmegaConf
+import torch
 
-cfg = OmegaConf.load(os.getcwd() + "/.hydra/config.yaml")
+
+def is_interactive():
+    import __main__ as main
+
+    return not hasattr(main, "__file__")
 
 
-def update_running_mean_std(x, old_mean, old_var, n):
+cfg = (
+    OmegaConf.load(os.getcwd() + "/.hydra/config.yaml")
+    if not is_interactive()
+    else OmegaConf.load("../../config/gran.yaml")
+)
 
-    new_mean = old_mean + (x - old_mean) / n
-    new_var = old_var + (x - old_mean) * (x - new_mean)
-    new_std = np.sqrt(new_var / n)
 
-    return new_mean, new_var, new_std
+def standardize(
+    X: Union[np.ndarray, torch.Tensor]
+) -> Union[np.ndarray, torch.Tensor]:
+    """
+    Standardize batch.
+    """
+    X_mean = X.mean(axis=0)
+    X_std = X.std(axis=0)
+
+    return (X - X_mean) / X_std
+
+
+class RunningStandardization:
+    """
+    Standardize data using running mean and standard deviation.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize running variables.
+        """
+        self.mean = self.var = self.std = self.n = 0
+
+    def __call__(
+        self, x: Union[np.ndarray, torch.Tensor]
+    ) -> Union[np.ndarray, torch.Tensor]:
+        """
+        Update running mean and standard deviation using the datapoint and
+        return an updated datapoint.
+        """
+        self.n += 1
+
+        new_mean = self.mean + (x - self.mean) / self.n
+        new_var = self.var + (x - self.mean) * (x - new_mean)
+        new_std = np.sqrt(new_var / self.n)
+
+        self.mean, self.var, self.std = new_mean, new_var, new_std
+
+        return (x - self.mean) / self.std

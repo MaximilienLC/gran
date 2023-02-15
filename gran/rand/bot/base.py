@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,9 +44,7 @@ class BaseBot(ABC):
         self.curr_run_num_steps = 0
 
         if cfg.alg == "ga":
-
             if "env" in cfg.transfer:
-
                 self.saved_emulator_state = None
                 self.saved_emulator_obs = None
                 self.saved_emulator_seed = None
@@ -55,7 +53,6 @@ class BaseBot(ABC):
                 self.curr_episode_num_steps = 0
 
             if "fit" in cfg.transfer:
-
                 self.continual_fitness = 0
 
         self.initialize_()

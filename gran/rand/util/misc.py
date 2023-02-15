@@ -21,7 +21,6 @@ def generate_new_seeds(curr_gen: int, num_pops: int) -> np.ndarray:
     )
 
     if cfg.merge:
-
         new_seeds = np.repeat(new_seeds, 2, axis=1)
 
         if curr_gen == 0:

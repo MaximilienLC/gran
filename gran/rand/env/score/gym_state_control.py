@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ from gran.util.misc import cfg
 
 class Env(BaseScoreEnv):
     def __init__(self):
-
         self.valid_tasks = score_tasks
         self.get_emulator_state = get_emulator_state
         self.set_emulator_state = set_emulator_state

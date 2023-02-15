@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ from omegaconf import DictConfig, OmegaConf
 
 @hydra.main(version_base=None, config_path="../../config", config_name="rand")
 def fork(cfg: DictConfig):
-
     env = os.environ.copy()
     env.update(MKL_NUM_THREADS="1", OMP_NUM_THREADS="1", INSIDE_MPI_FORK="1")
 
@@ -44,23 +43,22 @@ def fork(cfg: DictConfig):
 
 
 if __name__ == "__main__":
-
     if os.getenv("INSIDE_MPI_FORK"):
-
         cfg = OmegaConf.create(sys.argv[1])
 
         assert cfg.stage in ["train", "test"]
 
         if cfg.stage == "train":
             from gran.rand.evolve import evolve
+
             evolve()
-            
+
         else:  # cfg.stage == "test":
             from gran.rand.evaluate import evaluate
+
             evaluate()
 
     else:
-
         global script
         script = sys.argv[0]
 

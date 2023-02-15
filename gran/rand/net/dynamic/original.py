@@ -17,7 +17,6 @@ import numpy as np
 
 class Net:
     def __init__(self, d_input_output):
-
         self.d_input, self.d_output = d_input_output
 
         self.nodes = {
@@ -41,7 +40,6 @@ class Net:
         ]
 
     def initialize_architecture(self):
-
         for _ in range(self.d_input):
             self.grow_node("input")
 
@@ -49,14 +47,11 @@ class Net:
             self.grow_node("output")
 
     def mutate_parameters(self):
-
         for node in self.nodes["hidden"] + self.nodes["output"]:
             node.mutate_parameters()
 
     def grow_node(self, type="hidden"):
-
         if type == "input":
-
             new_input_node = Node("input", self.nb_nodes_grown)
             self.nb_nodes_grown += 1
 
@@ -72,7 +67,6 @@ class Net:
             return new_input_node
 
         elif type == "output":
-
             new_output_node = Node("output", self.nb_nodes_grown)
             self.nb_nodes_grown += 1
 
@@ -87,7 +81,6 @@ class Net:
             return new_output_node
 
         else:  # type == 'hidden'
-
             potential_in_nodes = list(dict.fromkeys(self.nodes["receiving"]))
 
             in_node_1 = np.random.choice(potential_in_nodes)
@@ -97,9 +90,7 @@ class Net:
             if len(potential_in_nodes) != 0:
                 in_node_2 = np.random.choice(potential_in_nodes)
 
-            out_node = np.random.choice(
-                self.nodes["hidden"] + self.nodes["output"]
-            )
+            out_node = np.random.choice(self.nodes["hidden"] + self.nodes["output"])
 
             new_hidden_node = Node("hidden", self.nb_nodes_grown)
             self.nb_nodes_grown += 1
@@ -111,12 +102,8 @@ class Net:
 
             self.grow_connection(new_hidden_node, out_node)
 
-            in_node_1_layer = find_sublist_index(
-                in_node_1, self.nodes["layered"]
-            )
-            out_node_layer = find_sublist_index(
-                out_node, self.nodes["layered"]
-            )
+            in_node_1_layer = find_sublist_index(in_node_1, self.nodes["layered"])
+            out_node_layer = find_sublist_index(out_node, self.nodes["layered"])
 
             layer_difference = out_node_layer - in_node_1_layer
 
@@ -124,13 +111,11 @@ class Net:
             self.nodes["hidden"].append(new_hidden_node)
 
             if abs(layer_difference) > 1:
-
                 self.nodes["layered"][
                     in_node_1_layer + np.sign(layer_difference)
                 ].append(new_hidden_node)
 
             else:
-
                 if layer_difference == 1:
                     latest_layer = out_node_layer
                 else:  # layer_difference == -1 or layer_difference == 0:
@@ -140,9 +125,7 @@ class Net:
                 self.nodes["layered"][latest_layer].append(new_hidden_node)
 
     def grow_connection(self, in_node=None, out_node=None):
-
         if in_node == None:
-
             potential_in_nodes = list(dict.fromkeys(self.nodes["receiving"]))
 
             for node in self.nodes["being pruned"]:
@@ -159,7 +142,6 @@ class Net:
             in_node = np.random.choice(potential_in_nodes)
 
         if out_node == None:
-
             potential_out_nodes = self.nodes["hidden"] + self.nodes["output"]
 
             for node in self.nodes["being pruned"]:
@@ -180,9 +162,7 @@ class Net:
         self.nodes["emitting"].append(in_node)
 
     def prune_node(self, node=None):
-
         if node == None:
-
             if len(self.nodes["hidden"]) == 0:
                 return
 
@@ -200,35 +180,25 @@ class Net:
             self.prune_connection(in_node, node, node)
 
         for key in self.nodes:
-
             if key == "layered":
-
                 node_layer = find_sublist_index(node, self.nodes["layered"])
                 self.nodes["layered"][node_layer].remove(node)
 
-                if (
-                    node_layer != 0
-                    and node_layer != len(self.nodes["layered"]) - 1
-                ):
+                if node_layer != 0 and node_layer != len(self.nodes["layered"]) - 1:
                     if self.nodes["layered"][node_layer] == []:
-                        self.nodes["layered"].remove(
-                            self.nodes["layered"][node_layer]
-                        )
+                        self.nodes["layered"].remove(self.nodes["layered"][node_layer])
             else:
                 while node in self.nodes[key]:
                     self.nodes[key].remove(node)
 
     def prune_connection(self, in_node=None, out_node=None, calling_node=None):
-
         if in_node == None:
-
             if len(self.nodes["emitting"]) == 0:
                 return
 
             in_node = np.random.choice(self.nodes["emitting"])
 
         if out_node == None:
-
             out_node = np.random.choice(in_node.out_nodes)
 
         connection_was_already_pruned = in_node.disconnect_from(out_node)
@@ -240,23 +210,17 @@ class Net:
         self.nodes["emitting"].remove(in_node)
 
         if in_node != calling_node:
-
             if in_node not in self.nodes["emitting"]:
-
                 if in_node in self.nodes["hidden"]:
                     self.prune_node(in_node)
 
         if out_node != calling_node:
-
             if out_node not in self.nodes["receiving"]:
-
                 if out_node in self.nodes["hidden"]:
                     self.prune_node(out_node)
 
         for node in [in_node, out_node]:
-
             if node != calling_node and node not in self.nodes["being pruned"]:
-
                 if node in self.nodes["hidden"]:
                     if node.in_nodes == [node] or node.out_nodes == [node]:
                         self.prune_node(node)
@@ -266,17 +230,14 @@ class Net:
                         self.prune_connection(node, node)
 
     def reset(self):
-
         for node in self.nodes["all"]:
             node.output = np.array([0])
 
     def __call__(self, x):
-
         for x_i, node in zip(x, self.nodes["input"]):
             node.output = x_i
 
         for layer in range(1, len(self.nodes["layered"])):
-
             for node in self.nodes["layered"][layer]:
                 node.compute()
 
@@ -288,7 +249,6 @@ class Net:
 
 class Node:
     def __init__(self, type, id):
-
         self.id = id
 
         self.in_nodes = []
@@ -302,20 +262,13 @@ class Node:
             self.initialize_parameters()
 
     def __repr__(self):
-
         in_node_ids = tuple([node.id for node in self.in_nodes])
         out_node_ids = tuple([node.id for node in self.out_nodes])
 
         if self.type == "input":
             return str(("x",)) + "->" + str(self.id) + "->" + str(out_node_ids)
         elif self.type == "hidden":
-            return (
-                str(in_node_ids)
-                + "->"
-                + str(self.id)
-                + "->"
-                + str(out_node_ids)
-            )
+            return str(in_node_ids) + "->" + str(self.id) + "->" + str(out_node_ids)
         else:  # self.type == 'output':
             return (
                 str(in_node_ids)
@@ -326,7 +279,6 @@ class Node:
             )
 
     def initialize_parameters(self):
-
         self.weights = np.empty(0)
 
         if self.type == "hidden":
@@ -335,12 +287,10 @@ class Node:
             self.bias = np.zeros(1)
 
     def mutate_parameters(self):
-
         self.weights += 0.01 * np.random.randn(*self.weights.shape)
         self.bias += 0.01 * np.random.randn()
 
     def connect_to(self, node):
-
         new_weight = np.random.randn(1)
         node.weights = np.concatenate((node.weights, new_weight))
 
@@ -348,14 +298,11 @@ class Node:
         node.in_nodes.append(self)
 
     def disconnect_from(self, node):
-
         if self not in node.in_nodes:
             return True
 
         i = node.in_nodes.index(self)
-        node.weights = np.concatenate(
-            (node.weights[:i], node.weights[i + 1 :])
-        )
+        node.weights = np.concatenate((node.weights[:i], node.weights[i + 1 :]))
 
         self.out_nodes.remove(node)
         node.in_nodes.remove(self)
@@ -363,7 +310,6 @@ class Node:
         return False
 
     def compute(self):
-
         x = np.array([node.output for node in self.in_nodes]).squeeze()
 
         x = np.dot(x, self.weights) + self.bias
@@ -373,12 +319,10 @@ class Node:
         self.future_output = x
 
     def update(self):
-
         self.output = self.future_output
 
 
 def find_sublist_index(element, layered_list):
-
     for sublist_index, sublist in enumerate(layered_list):
         if element in sublist:
             return sublist_index

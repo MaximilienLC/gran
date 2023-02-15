@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ import torch.nn as nn
 
 class Net(nn.Module):
     def __init__(self, dimensions, recurrent=True):
-
         super().__init__()
 
         self.dimensions = dimensions
@@ -33,7 +32,6 @@ class Net(nn.Module):
         self.fc = nn.ModuleList()
 
         for i in range(len(dimensions) - 1):
-
             if recurrent and i == self.recurrent_layer_idx:
                 self.rnn = nn.RNN(dimensions[i], dimensions[i + 1])
                 self.h = torch.zeros(1, 1, dimensions[i + 1])
@@ -41,16 +39,12 @@ class Net(nn.Module):
                 self.fc.append(nn.Linear(dimensions[i], dimensions[i + 1]))
 
     def reset(self):
-
         if self.recurrent:
             self.h *= 0
 
     def forward(self, x):
-
         for i in range(len(self.dimensions) - 1):
-
             if self.recurrent == True:
-
                 if i + 3 == len(self.dimensions) or len(self.dimensions) == 2:
                     x, self.h = self.rnn(x[None, :], self.h)
 
@@ -61,7 +55,6 @@ class Net(nn.Module):
                     x = torch.tanh(self.fc[i](x))
 
             else:
-
                 x = torch.tanh(self.fc[i](x))
 
         return x

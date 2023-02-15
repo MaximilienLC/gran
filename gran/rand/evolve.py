@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -48,7 +48,6 @@ def evolve():
     sys.setrecursionlimit(2**31 - 1)
 
     if cfg.wandb_logging:
-
         os.environ["WANDB_SILENT"] = "true"
 
         with open("wandb_key.txt", "r") as f:
@@ -89,7 +88,6 @@ def evolve():
     )
 
     if rank == 0:
-
         if cfg.alg == "ga":
             exchange_and_mutate_info = np.empty(
                 (cfg.pop_size, env.num_pops, 4), dtype=np.uint32
@@ -104,12 +102,10 @@ def evolve():
         total_num_emulator_steps = 0
 
     if cfg.prev_num_gens > 0:
-
         """
         Primary process loads previous experiment state.
         """
         if rank == 0:
-
             state = env.io.load_state()
 
             bots, fitnesses, total_num_emulator_steps = state
@@ -132,7 +128,6 @@ def evolve():
     Setting up of GPU-evaluation specific MPI communication.
     """
     if env.evaluates_on_gpu:
-
         num_cpu_procs_per_gpu = size // num_gpus
         gpu_idx = rank // num_cpu_procs_per_gpu
         is_gpu_queuing_cpu_proc = rank % num_cpu_procs_per_gpu == 0
@@ -157,15 +152,12 @@ def evolve():
     Start of the genetic algorithm.
     """
     for curr_gen in range(cfg.prev_num_gens, cfg.prev_num_gens + cfg.num_gens):
-
         np.random.seed(curr_gen)
 
         if rank == 0:
-
             start = time.time()
 
             if cfg.alg == "ga":
-
                 new_seeds = generate_new_seeds(curr_gen, env.num_pops)
 
                 if curr_gen != 0:
@@ -180,22 +172,17 @@ def evolve():
         and scatters to secondary processes.
         """
         if curr_gen > 0:
-
             if cfg.alg == "es":
-
                 comm.Bcast(new_weights, root=0)
 
             else:  # if cfg.alg == "ga":
-
                 if rank == 0:
-
                     # MPI buffer size
                     exchange_and_mutate_info[:, :, 0] = np.max(
                         generation_results[:, :, 2]
                     )
 
                     for j in range(env.num_pops):
-
                         pair_ranking = (
                             fitnesses_rankings[:, j] + cfg.pop_size // 2
                         ) % cfg.pop_size
@@ -225,9 +212,7 @@ def evolve():
                 req = []
 
                 for i in range(bots_batch_size):
-
                     for j in range(env.num_pops):
-
                         pair = int(
                             exchange_and_mutate_info_batch[i, j, 1]
                             // bots_batch_size
@@ -235,7 +220,6 @@ def evolve():
 
                         # sending
                         if exchange_and_mutate_info_batch[i, j, 2] == 1:
-
                             tag = int(
                                 cfg.pop_size * j + bots_batch_size * rank + i
                             )
@@ -248,7 +232,6 @@ def evolve():
 
                         # receiving
                         else:
-
                             tag = int(
                                 cfg.pop_size * j
                                 + exchange_and_mutate_info_batch[i, j, 1]
@@ -272,7 +255,6 @@ def evolve():
         Variation.
         """
         for i in range(bots_batch_size):
-
             if curr_gen > 0:
                 env.bots = bots_batch[i]
 
@@ -287,7 +269,6 @@ def evolve():
             CPU Evaluation.
             """
             if env.evaluates_on_gpu == False:
-
                 fitnesses_and_num_emulator_steps_batch[i] = env.run_bots(
                     curr_gen
                 )
@@ -299,14 +280,12 @@ def evolve():
         GPU Evaluation.
         """
         if env.evaluates_on_gpu:
-
             ith_gpu_bots_batch = ith_gpu_comm.gather(
                 bots_batch,
                 root=gpu_idx * num_cpu_procs_per_gpu,
             )
 
             if is_gpu_queuing_cpu_proc:
-
                 ith_gpu_fitnesses_and_num_emulator_steps_batch = env.run_bots(
                     ith_gpu_bots_batch, curr_gen
                 )
@@ -342,7 +321,6 @@ def evolve():
         Fitness processing.
         """
         if rank == 0:
-
             fitnesses = generation_results[:, :, 0]
 
             if cfg.merge == "yes":
@@ -362,11 +340,9 @@ def evolve():
         State saving
         """
         if curr_gen + 1 in env.io.save_points or curr_gen == 0:
-
             batched_bots = comm.gather(bots_batch, root=0)
 
             if rank == 0:
-
                 bots = []
 
                 for bot_batch in batched_bots:

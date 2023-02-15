@@ -5,8 +5,8 @@ lightning_logs/
 .ipynb_checkpoints/
 data/
 wandb_key.txt
-ps.py
 outputs/
 venv/
-image.sif
-image.tar
+docker/image.sif
+docker/image.tar
+MYCOMMANDS.md

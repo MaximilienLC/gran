@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -73,7 +73,6 @@ def evaluate():
     ]
 
     for gen in assigned_generations:
-
         print("Gen : " + str(gen))
 
         path = str(gen) + "/"
@@ -105,11 +104,9 @@ def evaluate():
         assert not (cfg.seed == -1 and cfg.num_tests > 1)
 
         for i in range(cfg.pop_size // 2):
-
             bot = bots[selected_indices[i]][0]
 
             for j in range(cfg.num_tests):
-
                 if cfg.seed == -1:
                     seed = MAX_INT - j
                 else:
@@ -125,7 +122,6 @@ def evaluate():
                 obs = reset_emulator_state(emulator, seed)
 
                 for k in range(cfg.num_steps_per_test):
-
                     if "imitate" in cfg.env_path:
                         obs = hide_score(obs)
 

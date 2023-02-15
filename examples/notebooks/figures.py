@@ -91,9 +91,7 @@ for exp in experiments:
             for gen in reversed(gens):
                 # scores (pop // 2, num_tests)
                 scores.append(
-                    np.load(
-                        os.path.join(path, exp, nn, pop, gen, "scores.npy")
-                    )
+                    np.load(os.path.join(path, exp, nn, pop, gen, "scores.npy"))
                 )
 
                 with open(

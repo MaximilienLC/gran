@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ class BaseImitateEnv(BaseEnv):
     """
 
     def __init__(self) -> None:
-
         assert hasattr(self, "get_emulator_state"), "Attribute "
         "'get_emulator_state' required: a function that returns the "
         "emulator's state."
@@ -71,7 +70,6 @@ class BaseImitateEnv(BaseEnv):
             new_seed = curr_gen
 
         if "env" in cfg.transfer:
-
             if curr_gen == 0:
                 self.curr_actor_data_holder.saved_emulator_seed = new_seed
 
@@ -81,7 +79,6 @@ class BaseImitateEnv(BaseEnv):
             )
 
             if curr_gen > 0:
-
                 self.set_emulator_state(
                     self.curr_emulator,
                     self.curr_actor_data_holder.saved_emulator_state,
@@ -96,7 +93,6 @@ class BaseImitateEnv(BaseEnv):
                 )
 
         else:  # cfg.transfer in ["no", "fit"]:
-
             obs = self.reset_emulator_state(self.curr_emulator, new_seed)
 
             if self.curr_actor == self.imitation_target:
@@ -120,7 +116,6 @@ class BaseImitateEnv(BaseEnv):
         self.discriminator.reset()
 
         if "env" in cfg.transfer:
-
             if cfg.wandb_logging:
                 if self.curr_actor == self.generator:  # sanity check target
                     wandb.log(
@@ -142,7 +137,6 @@ class BaseImitateEnv(BaseEnv):
             return obs, False
 
         else:  # cfg.transfer in ["no", "fit"]:
-
             return np.empty(0), True
 
     def final_reset(self, obs: np.ndarray) -> None:
@@ -153,14 +147,12 @@ class BaseImitateEnv(BaseEnv):
             obs - The final environment observation.
         """
         if "mem" not in cfg.transfer:
-
             if self.curr_actor == self.generator:
                 self.generator.reset()
 
             self.discriminator.reset()
 
         if "env" in cfg.transfer:
-
             self.curr_actor_data_holder.saved_emulator_state = (
                 self.get_emulator_state(self.curr_emulator)
             )
@@ -168,7 +160,6 @@ class BaseImitateEnv(BaseEnv):
             self.curr_actor_data_holder.saved_emulator_obs = obs.copy()
 
         else:  # cfg.transfer in ["no", "fit"]:
-
             if cfg.wandb_logging:
                 if self.curr_actor == self.generator:  # sanity check target
                     wandb.log(
@@ -179,7 +170,6 @@ class BaseImitateEnv(BaseEnv):
                     )
 
     def run_bots(self, curr_gen: int) -> float:
-
         assert hasattr(self, "emulator"), "Attribute "
         "'emulator' required: the emulator to run the agents on."
 
@@ -191,7 +181,6 @@ class BaseImitateEnv(BaseEnv):
 
         # 0) Generator & Discriminator 1) Imitation Target & Discriminator
         for match in [0, 1]:
-
             self.curr_emulator = self.emulators[-match]  # 1 or 2 emulators
 
             if match == 0:
@@ -209,7 +198,6 @@ class BaseImitateEnv(BaseEnv):
             num_obs = 0
 
             while not done:
-
                 if self.generator == self.curr_actor:
                     output = self.generator(hidden_score_obs)
                 else:  # self.imitation_target == self.curr_actor:
@@ -232,10 +220,10 @@ class BaseImitateEnv(BaseEnv):
                 p_imitation_target += self.discriminator(hidden_score_obs)
 
                 if self.curr_actor == self.imitation_target:
-                    done = self.imitation_target.is_done
+                    if self.imitation_target.is_done:
+                        done = True
 
                 if done:
-
                     obs, done = self.done_reset(curr_gen)
                     num_obs = 0
 
@@ -265,7 +253,6 @@ class BaseImitateEnv(BaseEnv):
             discriminator_fitness = (discriminator_fitness + 1) / 4
 
         if "fit" in cfg.transfer:
-
             self.generator.continual_fitness += generator_fitness
             self.discriminator.continual_fitness += discriminator_fitness
 
@@ -281,7 +268,6 @@ class BaseImitateEnv(BaseEnv):
             )
 
         else:
-
             return np.array(
                 (
                     generator_fitness,

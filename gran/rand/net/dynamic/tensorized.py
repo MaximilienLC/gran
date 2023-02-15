@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ import numpy as np
 
 class Net:
     def __init__(self, d_input_output):
-
         self.d_input, self.d_output = d_input_output
 
         self.nodes = {
@@ -35,7 +34,6 @@ class Net:
         self.weights, self.biases = SparseWeightMatrix(), BiasVector()
 
     def initialize_architecture(self):
-
         for _ in range(self.d_input):
             self.grow_node("input")
 
@@ -43,7 +41,6 @@ class Net:
             self.grow_node("output")
 
     def grow_node(self, type="hidden"):
-
         new_node = Node()
 
         self.weights.add_node(new_node)
@@ -53,11 +50,9 @@ class Net:
         self.nodes[type].append(new_node)
 
         if type == "input":
-
             self.nodes["receiving"].append(new_node)
 
         elif type == "hidden":
-
             potential_in_nodes = []
 
             for input_node in self.nodes["input"]:
@@ -97,7 +92,6 @@ class Net:
             self.grow_connection(new_node, out_node)
 
     def grow_connection(self, in_node, out_node):
-
         in_node.out_nodes.append(out_node)
         out_node.in_nodes.append(in_node)
 
@@ -107,9 +101,7 @@ class Net:
         self.nodes["receiving"].append(out_node)
 
     def prune_node(self, node=None):
-
         if node == None:
-
             if len(self.nodes["hidden"]) == 0:
                 return
 
@@ -134,7 +126,6 @@ class Net:
                 self.nodes[key].remove(node)
 
     def prune_connection(self, in_node, out_node, calling_node):
-
         if in_node not in out_node.in_nodes:
             return
 
@@ -162,7 +153,6 @@ class Node:
 
 class SparseWeightMatrix:
     def __init__(self):
-
         self.row = np.array([])
         self.col = np.array([])
         self.data = np.array([])
@@ -170,11 +160,9 @@ class SparseWeightMatrix:
         self.nodes = []
 
     def add_node(self, node):
-
         self.nodes.append(node)
 
     def add_connection(self, in_node, out_node):
-
         in_node_idx = self.nodes.idx(in_node)
         out_node_idx = self.nodes.idx(out_node)
 
@@ -183,7 +171,6 @@ class SparseWeightMatrix:
         self.data = np.append(self.data, np.random.randn())
 
     def remove_node(self, node):
-
         node_idx = self.nodes.idx(node)
 
         self.nodes.remove(node)
@@ -202,13 +189,11 @@ class SparseWeightMatrix:
 
 class BiasVector:
     def __init__(self):
-
         self.data = np.array([])
 
         self.nodes = []
 
     def add_node(self, node, type):
-
         self.nodes.append(node)
 
         self.data = np.append(
@@ -216,7 +201,6 @@ class BiasVector:
         )
 
     def remove_node(self, node):
-
         node_idx = self.nodes.idx(node)
 
         self.nodes.remove(node)

@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,14 +29,12 @@ def get_emulator_state(emulator):
 
 
 def reset_emulator_state(emulator, seed):
-
     obs, info = emulator.reset(seed=seed)
 
     return obs
 
 
 def run_emulator_step(emulator, action):
-
     obs, rew, term, trunc, info = emulator.step(action)
 
     return obs, rew, term or trunc
@@ -85,7 +83,6 @@ imitation_tasks = [
 
 
 def get_task_name(task):
-
     if task == "acrobot":
         return "Acrobot-v1"
     elif task == "cart_pole":
@@ -129,7 +126,6 @@ def get_task_name(task):
 
 
 def get_task_info(task):
-
     task_name = get_task_name(task)
 
     emulator = gymnasium.make(task_name)
@@ -137,13 +133,11 @@ def get_task_info(task):
     d_input = emulator.observation_space.shape[0]
 
     if isinstance(emulator.action_space, gymnasium.spaces.Discrete):
-
         d_output = emulator.action_space.n
         discrete_output = True
         absolute_output_bound = None
 
     else:  # isinstance(emulator.action_space, gymnasium.spaces.Box):
-
         d_output = emulator.action_space.shape[0]
         discrete_output = False
         absolute_output_bound = emulator.action_space.high[0]

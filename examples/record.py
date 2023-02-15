@@ -1,4 +1,4 @@
-# Copyright 2022 The Gran Authors.
+# Copyright 2023 The Gran Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ args = parser.parse_args()
 
 MAX_INT = 2**31 - 1
 
+
 # Backward Compatibility for Control Task experiments
 class RenameUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
@@ -97,14 +98,12 @@ split_extra_arguments = extra_arguments.split("~")
 
 
 if "score" in env_path:
-
     steps = split_extra_arguments[0].split(".")[1]
     task = split_extra_arguments[1].split(".")[1]
     transfer = split_extra_arguments[2].split(".")[1]
     trials = split_extra_arguments[3].split(".")[1]
 
 elif "imitate.retro" in env_path:
-
     level = split_extra_arguments[0].split(".")[1]
     merge = split_extra_arguments[1].split(".")[1]
     steps = split_extra_arguments[2].split(".")[1]
@@ -113,7 +112,6 @@ elif "imitate.retro" in env_path:
     transfer = split_extra_arguments[5].split(".")[1]
 
 else:  # 'imitate' in env_path:
-
     merge = split_extra_arguments[0].split(".")[1]
     steps = split_extra_arguments[1].split(".")[1]
     task = split_extra_arguments[2].split(".")[1]
@@ -124,7 +122,6 @@ Initialize environment
 """
 
 if "control" in env_path:
-
     import gym
     from gym import wrappers
     from gran.utils.functions.control import get_task_name
@@ -137,7 +134,6 @@ if "control" in env_path:
         emulator = wrappers.RecordVideo(emulator, args.state_path)
 
 elif "atari" in env_path:
-
     import gym
     from gym import wrappers
     import ale_py
@@ -152,7 +148,6 @@ elif "atari" in env_path:
         emulator = wrappers.RecordVideo(emulator, args.state_path)
 
 elif "retro" in env_path:
-
     from gym import wrappers
     import retro
     from utils.functions.retro import get_task_name, hide_score
@@ -166,7 +161,6 @@ elif "retro" in env_path:
         emulator = wrappers.RecordVideo(emulator, args.state_path)
 
 else:  # 'gravity' in env_path:
-
     data = np.load("data/behaviour/gravity/11k.npy")[-1000:]
 
     output = np.empty((7, 16, 16))
@@ -176,28 +170,24 @@ Import bots
 """
 
 if "gym" in env_path:
-
     if "dynamic" in bot_path:
         from bots.netted.dynamic.rnn.control import Bot
     else:  # 'static' in bot_path:
         from bots.netted.static.rnn.control import Bot
 
 elif "atari" in env_path:
-
     if "dynamic" in bot_path:
         from bots.netted.dynamic.conv_rnn.atari import Bot
     else:  # 'static' in bot_path:
         from bots.netted.static.conv_rnn.atari import Bot
 
 elif "retro" in env_path:
-
     if "dynamic" in bot_path:
         from bots.netted.dynamic.conv_rnn.retro import Bot
     else:  # 'static' in bot_path:
         from bots.netted.static.conv_rnn.retro import Bot
 
 else:  # 'gravity' in env_path:
-
     if "dynamic.conv_rnn" in bot_path:
         from bots.netted.dynamic.conv_rnn.gravity import Bot
     else:  # 'static.conv_rnn' in bot_path:
@@ -214,40 +204,31 @@ pkl_files = [
 state_files = []
 
 for pkl_file in pkl_files:
-
     if pkl_file[:-4].isdigit():
-
         state_files.append(pkl_file)
 
 if len(state_files) == 0:
     raise Exception("Directory '" + args.state_path + "/' empty.")
 
 try:
-
     with open(args.state_path + "/0.pkl", "rb") as f:
         state = RenameUnpickler(f).load()
 
 except Exception:
-
     print("File '" + args.state_path + "/0.pkl' doesn't exist / is corrupted.")
 
 if len(args.state_path) == 3:
-
     full_seed_list, _, _ = state
 
 else:  # len(state) == 4:
-
     _, _, latest_fitnesses_and_bot_sizes, bots = state
 
     for i in range(1, len(state_files)):
-
         try:
-
             with open(args.state_path + "/" + str(i) + ".pkl", "rb") as f:
                 bots += RenameUnpickler(f).load()[0]
 
         except Exception:
-
             print(
                 "File '"
                 + args.state_path
@@ -268,12 +249,10 @@ scores = np.load(args.state_path + "/scores.npy")
 i = scores.mean(axis=1).argmax()
 
 if len(state) == 3:
-
     bot = Bot(0)
     bot.build(full_seed_list[i][0])
 
 else:  # len(state) == 4:
-
     bot = bots[selected_indices[i]][0]
 
 bot.setup_to_run()
@@ -288,7 +267,6 @@ if hasattr(bot, "n"):
     print(bot.n)
 
 for i in range(args.num_tests):
-
     print("Test #" + str(i))
 
     bot.reset()
@@ -298,13 +276,11 @@ for i in range(args.num_tests):
     random.seed(MAX_INT - i)
 
     if "gravity" not in env_path:
-
         emulator.seed(MAX_INT - i)
         obs = emulator.reset()
         done = False
 
     else:  # 'gravity' in env_path:
-
         num_obs_fed_to_generator = 3 if task == "predict" else 1  # 'generate'
         data_point = np.random.choice(data)
         output[i, 3:] = data_point
@@ -312,9 +288,7 @@ for i in range(args.num_tests):
     score = 0
 
     for j in range(args.num_obs):
-
         if "gravity" not in env_path:
-
             if "imitate" in env_path:
                 obs = hide_score(obs)
 
@@ -327,7 +301,6 @@ for i in range(args.num_tests):
                 break
 
         else:  # 'gravity' in env_path:
-
             if j < num_obs_fed_to_generator:
                 obs = data_point[j]
 
