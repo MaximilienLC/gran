@@ -9,7 +9,9 @@ Setting up
 ---------------------------------------------------------
 
 Set the ``LOCAL_GRAN_PATH`` variable.
+
 .. code-block:: console
+    
    # Examples
    $ LOCAL_GRAN_PATH=/home/stav/gran
    $ LOCAL_GRAN_PATH=/home/max/Dropbox/gran
