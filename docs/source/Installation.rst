@@ -1,16 +1,10 @@
-Usage
-=====
-
 .. _installation:
 
 Installation
-------------
+============
 
-To use Lumache, first install it using pip:
+.. include:: Installation_Setting_up.rst
 
-.. code-block:: console
-
-   (.venv) $ pip install lumache
 
 Creating recipes
 ----------------
