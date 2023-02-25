@@ -14,5 +14,6 @@ Contents
 --------
 
 .. toctree::
+   :maxdepth: 1
 
    Installation
