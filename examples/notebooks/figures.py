@@ -2,7 +2,7 @@ import os
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
-from gran.rand.util.control import get_control_task_name
+from gran.nevo.util.control import get_control_task_name
 import matplotlib
 
 matplotlib.rcParams["pdf.fonttype"] = 42
@@ -79,9 +79,9 @@ for exp in experiments:
         exp_dict[task][seed][transfer][net] = []
 
         if net == "rnn":
-            from bots.netted.static.rnn.control import Bot
-        else:  # 'static.fc' in bot_path:
-            from bots.netted.static.fc.control import Bot
+            from agents.netted.static.rnn.control import Agent
+        else:  # 'static.fc' in agent_path:
+            from agents.netted.static.fc.control import Agent
 
         pops = os.listdir(os.path.join(path, exp, nn))
         for pop in pops:
@@ -91,7 +91,9 @@ for exp in experiments:
             for gen in reversed(gens):
                 # scores (pop // 2, num_tests)
                 scores.append(
-                    np.load(os.path.join(path, exp, nn, pop, gen, "scores.npy"))
+                    np.load(
+                        os.path.join(path, exp, nn, pop, gen, "scores.npy")
+                    )
                 )
 
                 with open(

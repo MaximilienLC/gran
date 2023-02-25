@@ -26,23 +26,31 @@ def is_interactive():
     return not hasattr(main, "__file__")
 
 
-cfg = (
-    OmegaConf.load(os.getcwd() + "/.hydra/config.yaml")
-    if not is_interactive()
-    else OmegaConf.load("../../config/gran.yaml")
+cfg = OmegaConf.load(
+    os.getcwd() + "/../../config/test.yaml"
+    if is_interactive()
+    else "/.hydra/config.yaml"
 )
 
 
 def standardize(
     X: Union[np.ndarray, torch.Tensor]
 ) -> Union[np.ndarray, torch.Tensor]:
-    """
-    Standardize batch.
-    """
+
     X_mean = X.mean(axis=0)
     X_std = X.std(axis=0)
 
     return (X - X_mean) / X_std
+
+
+def normalize(
+    X: Union[np.ndarray, torch.Tensor]
+) -> Union[np.ndarray, torch.Tensor]:
+
+    X_min = X.min(axis=0)
+    X_max = X.max(axis=0)
+
+    return (X - X_min) / (X_max - X_min)
 
 
 class RunningStandardization:

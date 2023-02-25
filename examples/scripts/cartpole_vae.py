@@ -1,33 +1,31 @@
 import gymnasium
 import numpy as np
 
-from gran.util.gym_state_control import (
-    reset_emulator_state,
-    run_emulator_step,
+from gran.util.gym_fb_control import (
+    reset_env_state,
+    run_env_step,
     get_task_info,
     get_task_name,
 )
 from gran.util.misc import standardize
 
 task = "cart_pole"
-emulator = gymnasium.make(get_task_name(task))
+env = gymnasium.make(get_task_name(task))
 x_size, _, _, _ = get_task_info(task)
 
 states = []
 
 for i in range(10000):
     if i == 0 or done:
-        obs, done = reset_emulator_state(emulator, 0), False
+        obs, done = reset_env_state(env, 0), False
 
     states.append(obs)
 
-    obs, rew, done = run_emulator_step(
-        emulator, emulator.action_space.sample()
-    )
+    obs, rew, done = run_env_step(env, env.action_space.sample())
 
 states = standardize(np.array(states))
 
-emulator.close()
+env.close()
 
 import torch
 import pytorch_lightning as pl
@@ -67,7 +65,7 @@ class CartPoleDataModule(pl.LightningDataModule):
         )
 
 
-from gran.grad.model.ae.var.mlp import MLPVAE
+from gran.bprop.model.ae.var.mlp import MLPVAE
 
 pl.seed_everything(0)
 wandb_logger = WandbLogger()

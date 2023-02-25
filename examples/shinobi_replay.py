@@ -47,9 +47,7 @@ if ".bk2" in args.file:
 if args.to_npy:
     npy_key_log = np.empty((0, 12), dtype=np.bool)
 
-env = retro.make(
-    "ShinobiIIIReturnOfTheNinjaMaster-Genesis", state="Level" + args.level
-)
+env = retro.make("ShinobiIIIReturnOfTheNinjaMaster-Genesis", state="Level" + args.level)
 
 if args.to_mp4:
     env = wrappers.Monitor(env, file, force=True)

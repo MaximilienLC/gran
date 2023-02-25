@@ -1,10 +1,15 @@
-# Gran: Grads, Rands & Neural Nets
+# Gran : Backpropagated & Neuroevolved Gradients for Neural Networks
 
-## I. Setting up the repository
+## 1. Library structure
+
+Two main branches: **bprop** & **nevo**
+
+## 2. Setting up the repository
 
 ### Step 1. Download on your local machine
 Define the library's path
 ```
+# Examples
 LOCAL_GRAN_PATH=/home/stav/gran
 LOCAL_GRAN_PATH=/home/max/Dropbox/gran
 ```
@@ -14,7 +19,7 @@ git clone git@github.com:MaximilienLC/gran.git ${LOCAL_GRAN_PATH}
 ```
 ### Step 2. Build the Docker / Apptainer images locally
 
-**(If you are in the `rrg-pbellec` Alliance Canada group you can skip to Step 3)**  
+**(If you don't mind using pre-built Docker / Apptainer images, skip to Step 3)**  
   
 The following instructions define the full dependency installation steps on **Ubuntu** to ensure reproducibility across platforms, utilizing container technologies Docker & Apptainer (Singularity).  
 
@@ -23,7 +28,7 @@ Disclaimer 1: you can probably skip steps that you've performed for previous ins
 Disclaimer 2: you can probably install this repository in fewer steps if softwares like CUDA/cuDNN are already installed on your system, skipping the need for Docker & Apptainer.  
 For the sake of simplicity & reproducibility, we however still recommend you follow this guide.
 
-Disclaimer 3: multi-node MPI is not currently supported
+Disclaimer 3: multi-node MPI is not currently supported.
 
 #### i. Install Apptainer 
 **(Skip this section if you have Docker privileges across machines)**
@@ -122,13 +127,13 @@ scp ${LOCAL_GRAN_PATH}/docker/image.sif ${CLUSTER_USER}@${CLUSTER_ADDRESS}:${CLU
 scp ${CLUSTER_USER}@${CLUSTER_ADDRESS}:${CLUSTER_GRAN_PATH}/docker/image.tar ${LOCAL_GRAN_PATH}/docker/.
 docker load -i ${LOCAL_GRAN_PATH}/docker/image.tar
 ```
-Execute the sample code
+Execute the sample code (don't forget to change the GRAN_PATH)
 ```
-docker run --rm --privileged --gpus=all -e PYTHONPATH=${PYTHONPATH}:${LOCAL_GRAN_PATH} -v ${LOCAL_GRAN_PATH}:${LOCAL_GRAN_PATH} -w ${LOCAL_GRAN_PATH} -v /dev/shm/:/dev/shm/  gran:latest python3 gran/rand/main.py
+LOCAL_GRAN_PATH=/home/max/Dropbox/gran; docker run --rm --privileged --gpus=all -e PYTHONPATH=${PYTHONPATH}:${LOCAL_GRAN_PATH} -v ${LOCAL_GRAN_PATH}:${LOCAL_GRAN_PATH} -w ${LOCAL_GRAN_PATH} -v /dev/shm/:/dev/shm/  gran:latest python3 gran/rand/main.py
 ```
-Run notebooks
+Run jupyter lab (don't forget to change the GRAN_PATH)
 ```
-docker run --rm --privileged --gpus=all -p 8888:8888 -e PYTHONPATH=${PYTHONPATH}:${LOCAL_GRAN_PATH} -v ${LOCAL_GRAN_PATH}:${LOCAL_GRAN_PATH} -w ${LOCAL_GRAN_PATH} -v /dev/shm/:/dev/shm/  gran:latest jupyter notebook --allow-root --ip 0.0.0.0
+LOCAL_GRAN_PATH=/home/max/Dropbox/gran; docker run --rm --privileged --gpus=all -p 8888:8888 -e PYTHONPATH=${PYTHONPATH}:${LOCAL_GRAN_PATH} -v ${LOCAL_GRAN_PATH}:${LOCAL_GRAN_PATH} -w ${LOCAL_GRAN_PATH} -v /dev/shm/:/dev/shm/  gran:latest jupyter-lab --allow-root --ip 0.0.0.0
 ```
 
 #### iii. On a SLURM cluster
@@ -142,28 +147,27 @@ Execute the sample code
 ```
 python3 gran/rand/main.py -m hydra/launcher=submitit_slurm +launcher=slurm
 ```
-Run notebooks
+Run jupyter lab
 ```
-module load apptainer/1.0
-CLUSTER_GRAN_PATH=/scratch/mleclei/Dropbox/gran
 salloc --account=rrg-pbellec --gres=gpu:1
-apptainer exec --nv --bind ${CLUSTER_GRAN_PATH}:${CLUSTER_GRAN_PATH} --pwd ${CLUSTER_GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${CLUSTER_GRAN_PATH} ${CLUSTER_GRAN_PATH}/docker/image.sif jupyter notebook --allow-root --ip $(hostname -f) --no-browser
+module load apptainer/1.0
+CLUSTER_GRAN_PATH=/scratch/mleclei/Dropbox/gran; apptainer exec --nv --bind ${CLUSTER_GRAN_PATH}:${CLUSTER_GRAN_PATH} --pwd ${CLUSTER_GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${CLUSTER_GRAN_PATH} ${CLUSTER_GRAN_PATH}/docker/image.sif jupyter-lab --allow-root --ip $(hostname -f) --no-browser
+
+# (On a separate terminal on your own machine) Tunnel through SSH
 sshuttle --dns -Nr mleclei@beluga.computecanada.ca
 ```
 
 #### iii. On a new machine without Docker privileges
-Define path to the library
+
+Execute the sample code (don't forget to change the GRAN_PATH)
 ```
-NEW_GRAN_PATH=/home/mleclei/Dropbox/gran
+GRAN_PATH=/home/mleclei/Dropbox/gran; apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} ${GRAN_PATH}/docker/image.sif python3 gran/rand/main.py
 ```
-Execute the sample code
+Run jupyter lab (don't forget to change the GRAN_PATH)
 ```
-apptainer exec --nv --bind ${NEW_GRAN_PATH}:${NEW_GRAN_PATH} --pwd ${NEW_GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${NEW_GRAN_PATH} ${NEW_GRAN_PATH}/docker/image.sif python3 gran/rand/main.py
-```
-Run notebooks
-```
-# Start the notebook
-apptainer exec --nv --bind ${NEW_GRAN_PATH}:${NEW_GRAN_PATH} --pwd ${NEW_GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${NEW_GRAN_PATH} ${NEW_GRAN_PATH}/docker/image.sif jupyter notebook --allow-root --no-browser --port 1234
-# Tunnel through SSH
+# Start the lab 
+GRAN_PATH=/home/mleclei/Dropbox/gran; apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} ${GRAN_PATH}/docker/image.sif jupyter-lab --allow-root --no-browser --port 1234
+
+# (On a separate terminal on your own machine) Tunnel through SSH
 ssh ginkgo -NL 1234:localhost:1234
 ```
