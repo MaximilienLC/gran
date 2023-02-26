@@ -1,2 +1,7 @@
 [build-system]
 requires = ["sphinx-copybutton >=0.4.0"]
+
+[project]
+name = "Gran"
+authors = [{name = "The Gran Authors"}]
+dynamic = ["version", "description"]
