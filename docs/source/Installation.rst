@@ -3,4 +3,4 @@
 Installation
 ************
 
-.. include:: Installation_Setting_up.rst
+.. include:: _installation_setting_up_on_your_personal_machine.rst
