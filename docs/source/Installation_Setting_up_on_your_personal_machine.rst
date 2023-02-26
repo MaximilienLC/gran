@@ -3,32 +3,31 @@
 Setting up on your personal machine
 ===================================
 
-The following instructions define the full dependency installation steps
-to ensure reproducibility across platforms, utilizing container technologies
-Docker & Apptainer (previously known as Singularity).
+Below are the full dependency installation steps so as to ensure
+reproducibility across platforms, utilizing container technologies
+Docker & Apptainer (a.k.a. Singularity).
 
-While setting up a Python library through container technologies might seem a
+While setting up a Python library through a container might seem a
 little bit too involved, especially when compared to standard practices, we
 believe it to be best in terms of simplicity & reproducibility.
 
-However, as we also provide pre-built Docker & Apptainer images, you do not
-need to go through the follow steps if you do not intend to run on your
-personal machine. Do note that you will need Docker or Apptainer on the
-running machine.
+Do note that we also provide pre-built Docker & Apptainer images, meaning
+that you do not need to go through the following setting up steps if you do
+not intend to run Gran on your personal machine.
 
 .. note::
 
-    Docker/Apptainer free installation is in practice possible but is not
-    considered in this documentation. If you still wish to proceed without,
-    please refer to the contents of our
+    Docker/Apptainer free installation is of course possible but is not
+    considered in this documentation. If you still wish to proceed without
+    container technologies, please refer to the contents of our
     `Dockerfile
     <https://github.com/MaximilienLC/gran/blob/main/docker/Dockerfile>`_
     for general directives.
 
-.. _installation_setting_up_on_your_personal_machine_setup_the_github_repository:
+.. _installation_setting_up_on_your_personal_machine_setting_up_the_github_repository:
 
-1. Setup the GitHub repository
-------------------------------
+1. Setting up the GitHub repository
+-----------------------------------
 
 Set the ``GRAN_PATH`` variable.
 
@@ -44,10 +43,10 @@ Clone the repository.
 
    $ git clone git@github.com:MaximilienLC/gran.git ${GRAN_PATH}
 
-.. _installation_setup_docker_apptainer_on_your_personal_machine:
+.. _installation_setting_up_docker_apptainer_on_your_personal_machine:
 
-2. Setup Docker / Apptainer on your personal machine
-----------------------------------------------------
+2. Setting up Docker / Apptainer on your personal machine
+---------------------------------------------------------
 
 **a) Install and setup Docker**
 
@@ -99,12 +98,11 @@ Add the repository and install the deb package.
     `the official installation guide
     <https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html>`_.
 
+GUI Instructions:
+
 1. Press the Super key.
-
 2. Type "Software & Updates".
-
 3. Select the "Additional Drivers" tab.
-
 4. Under the NVIDIA Corporation section, select: "Using NVIDIA driver
 metapackage from nvidia-driver-XXX (proprietery, tested)".
 
@@ -113,7 +111,8 @@ metapackage from nvidia-driver-XXX (proprietery, tested)".
 .. note::
 
     If you are not running Ubuntu, please refer to
-    `the official installation guide<https://docs.docker.com/engine/install/>`_.
+    `the official installation guide
+    <https://docs.docker.com/engine/install/>`_.
 
 Setup the package repository and the GPG key.
 

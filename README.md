@@ -1,3 +1,4 @@
-# Gran : Backpropagated & Neuroevolved Gradients for Neural Networks
+# Gran
+## Gradients (backpropagated & neuroevolved) for Neural Networks
 
-Installation & Execution instructions available through this [[link](gran.readthedocs.io)
+Documentation available [here](gran.readthedocs.io).
