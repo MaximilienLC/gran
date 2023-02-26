@@ -3,25 +3,26 @@
 Setting up on your personal machine
 ===================================
 
-| The following instructions define the full dependency installation steps
+The following instructions define the full dependency installation steps
 to ensure reproducibility across platforms, utilizing container technologies
 Docker & Apptainer (previously known as Singularity).
-|
-| While setting up a Python library through container technologies might seem a
+
+While setting up a Python library through container technologies might seem a
 little bit too involved, especially when compared to standard practices, we
 believe it to be best in terms of simplicity & reproducibility.
-|
-| However, as we also provide pre-built Docker & Apptainer images, you do not
-need to go through the follow steps **if** you do not intend to run on your
+
+However, as we also provide pre-built Docker & Apptainer images, you do not
+need to go through the follow steps if you do not intend to run on your
 personal machine. Do note that you will need Docker or Apptainer on the
 running machine.
 
 .. note::
 
-    Docker/Apptainer free installation is possible but is not considered in
-    this documentation. If you still wish to proceed as such, please refer to
-    the contents of our
-    `Dockerfile <https://github.com/MaximilienLC/gran/blob/main/docker/Dockerfile>`_
+    Docker/Apptainer free installation is in practice possible but is not
+    considered in this documentation. If you still wish to proceed without,
+    please refer to the contents of our
+    `Dockerfile
+    <https://github.com/MaximilienLC/gran/blob/main/docker/Dockerfile>`_
     for general directives.
 
 .. _installation_setting_up_on_your_personal_machine_setup_the_github_repository:
@@ -53,7 +54,8 @@ Clone the repository.
 .. note::
 
     If you are not running Ubuntu, please refer to
-    `the official installation guide<https://docs.docker.com/engine/install/>`_.
+    `the official installation guide
+    <https://docs.docker.com/engine/install/>`_.
 
 Install the deb package.
 
@@ -68,18 +70,20 @@ Give yourself permissions to not require sudo for later docker commands.
     $ sudo groupadd docker
     $ sudo usermod -aG docker ${USER}
 
-| Finally, log out and log back to apply changes.
-|
-| **b) Install Apptainer**
+Finally, log out and log back to apply changes.
+
+**b) Install Apptainer**
 
 .. note::
 
-    | You can skip this section if you have Docker privileges across all your
+    You can skip this section if you have Docker privileges across all your
     machines.
-    |
-    | If you do not have Docker privileges and are not running Ubuntu,
-    please refer to
-    `the official installation guide<https://apptainer.org/docs/admin/main/installation.html>`_.
+    
+    If you do not have Docker privileges and are not running Ubuntu, please
+    refer to `the official installation guide 
+    <https://apptainer.org/docs/admin/main/installation.html>`_.
+
+Add the repository and install the deb package.
 
 .. code-block:: console
 
@@ -92,15 +96,19 @@ Give yourself permissions to not require sudo for later docker commands.
 .. note::
 
     If you are not running Ubuntu Desktop, please refer to
-    `the official installation guide<https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html>`_.
+    `the official installation guide
+    <https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html>`_.
 
-| i. Press the Super key.
-| ii. Type "Software & Updates".
-| iii. Select the "Additional Drivers" tab.
-| iv. Under the NVIDIA Corporation section, select: "Using NVIDIA driver
+1. Press the Super key.
+
+2. Type "Software & Updates".
+
+3. Select the "Additional Drivers" tab.
+
+4. Under the NVIDIA Corporation section, select: "Using NVIDIA driver
 metapackage from nvidia-driver-XXX (proprietery, tested)".
-|
-| **d) Install the NVIDIA Container Toolkit**
+
+**d) Install the NVIDIA Container Toolkit**
 
 .. note::
 
