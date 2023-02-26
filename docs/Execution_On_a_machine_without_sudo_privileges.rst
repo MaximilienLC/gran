@@ -14,8 +14,8 @@ Make sure the ``GRAN_PATH`` variable is still set.
    $ GRAN_PATH=/home/stav/gran
    $ GRAN_PATH=/home/mleclei/Dropbox/gran
 
-2. a. Execute the sample code
------------------------------
+2. Option A. Execute the sample code
+------------------------------------
 
 .. code-block:: console
 
@@ -23,8 +23,8 @@ Make sure the ``GRAN_PATH`` variable is still set.
          --pwd ${GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} \
          ${GRAN_PATH}/docker/image.sif python3 gran/rand/main.py
 
-2. b. Run Jupyter-lab
----------------------
+2. Option B. Run Jupyter-lab
+----------------------------
 
 From your own machine create a SSH tunnel.
 

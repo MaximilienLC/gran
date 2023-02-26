@@ -10,7 +10,7 @@ On your own machine
     please refer to the contents of the
     `Dockerfile
     <https://github.com/MaximilienLC/gran/blob/main/docker/Dockerfile>`_
-    for general directives.
+    for approximate directives.
 
 1. Install the repository
 -------------------------
@@ -67,8 +67,7 @@ GUI Instructions:
     1. Press the Super key.
     2. Type "Software & Updates".
     3. Select the "Additional Drivers" tab.
-    4. Under the NVIDIA Corporation section, select: "Using NVIDIA driver
-    metapackage from nvidia-driver-XXX (proprietery, tested)".
+    4. Select: "Using NVIDIA driver metapackage from nvidia-driver-XXX (proprietery, tested)".
 
 4. Install the NVIDIA Container Toolkit
 ---------------------------------------
@@ -97,21 +96,23 @@ Install the deb package and restart the docker engine.
     $ sudo apt-get install -y nvidia-docker2
     $ sudo systemctl restart docker
 
-5. Option A : Build the Docker image
-------------------------------------
+5. Get the Docker image
+-----------------------
+
+Option A: Build it.
 
 .. code-block:: console
 
     $ cd ${GRAN_PATH}/
     $ docker build -f docker/Dockerfile -t gran:latest .
 
-5. Option B : Download the Docker image
----------------------------------------
+Option B : Download it.
 
 .. code-block:: console
 
     $ cd ${GRAN_PATH}/docker/
-    $ wget https://nextcloud.computecanada.ca/index.php/s/2ZJHsXjoNr7QatG/download -O image.tar
+    $ wget https://nextcloud.computecanada.ca/index.php/s/2ZJHsXjoNr7QatG/download \
+          -O image.tar
     $ docker load -i ${GRAN_PATH}/docker/image.tar
 
 6. Install Apptainer
@@ -136,12 +137,14 @@ Add the repository and install the deb package.
     $ sudo apt-get update
     $ sudo apt-get install -y apptainer
 
-7. Option A : Build the Apptainer image
----------------------------------------
+7. Get the Apptainer image
+--------------------------
 
 .. note::
 
     Skip if you did not install Apptainer.
+
+Option A: Build it.
 
 .. code-block:: console
 
@@ -149,12 +152,7 @@ Add the repository and install the deb package.
     $ docker save gran:latest -o image.tar
     $ apptainer build image.sif docker-archive://image.tar
 
-7. Option B : Download the Apptainer image
-------------------------------------------
-
-.. note::
-
-    Skip if you did not install Apptainer.
+Option B : Download it.
 
 .. code-block:: console
 

@@ -3,8 +3,10 @@
 On a SLURM cluster
 ==================
 
-Installing on a SLURM cluster machine requires Apptainer and Python to be loadable as
-modules.
+.. note::
+
+    Installing on a SLURM cluster machine requires Apptainer and Python to
+    be loadable as modules.
 
 1. Install the repository
 -------------------------
@@ -38,22 +40,21 @@ Clone the repository.
 
 .. note::
 
-    This command is indeed less than ideal but the easiest and quickest fix.
+    This command is of course less than ideal but the easiest and quickest fix.
 
 .. code-block:: console
 
-    $ sed -i "s|shlex.quote(sys.executable)|\"apptainer exec --nv --bind \
-          ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} \
+    $ sed -i "s|shlex.quote(sys.executable)|\"apptainer exec --nv \
+          --bind ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} \
           --env PYTHONPATH=\${PYTHONPATH}:${GRAN_PATH} \
           ${GRAN_PATH}\/docker\/image.sif python3\"|" \
           ${GRAN_PATH}/venv/lib/python3.10/site-packages/submitit/slurm/slurm.py
 
 4. Download the Apptainer image
-------------------------------------------
+-------------------------------
 
 .. code-block:: console
 
     $ cd ${GRAN_PATH}/docker/
     $ wget https://nextcloud.computecanada.ca/index.php/s/DCx46ZYsc22xYd2/download \
           -O image.sif
-    $ docker load -i ${GRAN_PATH}/docker/image.tar

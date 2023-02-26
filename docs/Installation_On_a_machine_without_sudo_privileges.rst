@@ -3,14 +3,16 @@
 On a machine without sudo privileges
 ====================================
 
-Installing on a machine without sudo privileges requires that you either have
-Docker privileges **or** Apptainer installed on that machine. 
+.. note::
 
-As mentioned in the beginning of the :ref:`installation_on_your_own_machine`
-installation section, Docker/Apptainer-free installation is possible by
-refering to the contents of the `Dockerfile
-<https://github.com/MaximilienLC/gran/blob/main/docker/Dockerfile>`_
-for general directives. 
+   Installing on a machine without sudo privileges requires that you either have
+   Docker privileges **or** Apptainer installed on that machine. 
+
+   As mentioned in the beginning of the :ref:`installation_on_your_own_machine`
+   installation section, Docker/Apptainer-free installation is possible by
+   refering to the contents of the `Dockerfile
+   <https://github.com/MaximilienLC/gran/blob/main/docker/Dockerfile>`_
+   for general directives. 
 
 1. Install the repository
 -------------------------
@@ -29,20 +31,22 @@ Clone the repository.
 
    $ git clone git@github.com:MaximilienLC/gran.git ${GRAN_PATH}
 
-2. Option A : Download the Docker image
----------------------------------------
+2. Download either Docker or Apptainer image
+--------------------------------------------
+
+Option A: Docker.
 
 .. code-block:: console
 
     $ cd ${GRAN_PATH}/docker/
-    $ wget https://nextcloud.computecanada.ca/index.php/s/2ZJHsXjoNr7QatG/download -O image.tar
+    $ wget https://nextcloud.computecanada.ca/index.php/s/2ZJHsXjoNr7QatG/download \
+          -O image.tar
     $ docker load -i ${GRAN_PATH}/docker/image.tar
 
-2. Option B : Download the Apptainer image
-------------------------------------------
+Option B : Apptainer.
 
 .. code-block:: console
 
     $ cd ${GRAN_PATH}/docker/
-    $ wget https://nextcloud.computecanada.ca/index.php/s/DCx46ZYsc22xYd2/download -O image.sif
-    $ docker load -i ${GRAN_PATH}/docker/image.tar
+    $ wget https://nextcloud.computecanada.ca/index.php/s/DCx46ZYsc22xYd2/download \
+          -O image.sif

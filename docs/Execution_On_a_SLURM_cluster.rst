@@ -23,15 +23,15 @@ Make sure the ``GRAN_PATH`` variable is still set.
     $ cd ${GRAN_PATH}
     $ . ${GRAN_PATH}/venv/bin/activate
 
-3. a. Execute the sample code
------------------------------
+3. Option A. Execute the sample code
+------------------------------------
 
 .. code-block:: console
 
     $ python3 -m gran -m hydra/launcher=submitit_slurm +launcher=slurm
 
-3. b. Run jupyter-lab
----------------------
+3. Option B. Run Jupyter-lab
+----------------------------
 
 From your own machine create a SSH tunnel.
 
