@@ -12,25 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 from typing import Union
 
 import numpy as np
-from omegaconf import OmegaConf
 import torch
-
-
-def is_interactive():
-    import __main__ as main
-
-    return not hasattr(main, "__file__")
-
-
-cfg = OmegaConf.load(
-    os.getcwd() + "/../../config/test.yaml"
-    if is_interactive()
-    else "/.hydra/config.yaml"
-)
 
 
 def standardize(

@@ -1,7 +1,7 @@
 import gymnasium
 import numpy as np
 
-from gran.util.gym_fb_control import (
+from gran.util.wrapper.gym_fb_control import (
     reset_env_state,
     run_env_step,
     get_task_info,
@@ -65,7 +65,7 @@ class CartPoleDataModule(pl.LightningDataModule):
         )
 
 
-from gran.bprop.model.ae.var.mlp import MLPVAE
+from gran.bp.model.ae.var.mlp import MLPVAE
 
 pl.seed_everything(0)
 wandb_logger = WandbLogger()

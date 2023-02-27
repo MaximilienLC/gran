@@ -12,14 +12,14 @@ from hydra import instantiate
 
 @hydra.main(version_base=None, config_path="../config", config_name="config")
 def main():
-    for iter in range(cfg.num_iters):
+    for iter in range(config.num_iters):
         # Train the encoder if decided
-        if cfg.encoder.in_use:
-            instantiate(cfg.encoder)()
+        if config.encoder.in_use:
+            instantiate(config.encoder)()
 
         # Train the predictor if decided
-        if cfg.predictor.in_use:
-            instantiate(cfg.predictor)()
+        if config.predictor.in_use:
+            instantiate(config.predictor)()
 
         env = os.environ.copy()
         env.update(
@@ -32,7 +32,7 @@ def main():
                 "--allow-run-as-root",  # Docker
                 "--oversubscribe",  # Submitit
                 "-n",
-                str(cfg.num_mpi_procs),
+                str(config.num_cpus),
                 sys.executable,
                 "gran/main.py",
                 str(HydraConfig.get().runtime.output_dir),
@@ -43,17 +43,17 @@ def main():
 
 if __name__ == "__main__":
     if os.getenv("INSIDE_MPI_FORK"):
-        cfg = OmegaConf.create(sys.argv[1])
+        config = OmegaConf.create(sys.argv[1])
 
-        assert cfg.stage in ["train", "test"]
+        assert config.stage in ["train", "test"]
 
-        if cfg.stage == "train":
-            from gran.nevo.evolve import evolve
+        if config.stage == "train":
+            from gran.ne.evolve import evolve
 
             evolve()
 
-        else:  # cfg.stage == "test":
-            from gran.nevo.evaluate import evaluate
+        else:  # config.stage == "test":
+            from gran.ne.evaluate import evaluate
 
             evaluate()
 

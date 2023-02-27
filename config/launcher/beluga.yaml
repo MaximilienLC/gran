@@ -1,0 +1,8 @@
+# @package hydra.launcher
+account: rrg-pbellec
+cpus_per_task: ${num_cpus}
+mem_per_cpu: 4G
+gpus_per_node: ${num_gpus}
+
+setup:
+  - module load apptainer/1.0

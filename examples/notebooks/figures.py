@@ -2,7 +2,7 @@ import os
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
-from gran.nevo.util.control import get_control_task_name
+from gran.ne.util.control import get_control_task_name
 import matplotlib
 
 matplotlib.rcParams["pdf.fonttype"] = 42

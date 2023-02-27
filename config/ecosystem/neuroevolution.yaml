@@ -1,0 +1,29 @@
+# Agent evolution algorithm
+algorithm: ga # ga | es 
+pop_size: 4
+num_gens_per_iter: 5
+
+# Agent evolution details
+num_steps: infinite # integer | infinite
+transfer: no # no | fit | env+fit | env+mem+fit
+merge: no # no | yes
+
+# Agent network
+type: static # static | dynamic
+net:
+  recurrence: false
+  sigma: 0.01
+
+# Training
+save_interval: 1
+
+# Testing
+num_tests: 1
+num_steps_per_test: infinite
+
+# Save directory
+dir: algorithm=${.algorithm},
+     pop_size=${.pop_size},
+     num_steps=${.num_steps},
+     transfer=${.transfer},
+     merge=${.merge}
