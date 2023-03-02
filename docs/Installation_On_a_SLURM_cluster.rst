@@ -44,7 +44,7 @@ Clone the repository.
 
 .. code-block:: console
 
-    $ sed -i "s|shlex.quote(sys.executable)|\"apptainer exec --nv \
+    sed -i "s|shlex.quote(sys.executable)|\"apptainer exec --nv \
           --bind ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} \
           --env PYTHONPATH=\${PYTHONPATH}:${GRAN_PATH} \
           ${GRAN_PATH}\/docker\/image.sif python3\"|" \

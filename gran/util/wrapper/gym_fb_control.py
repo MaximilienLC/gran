@@ -17,6 +17,7 @@ import copy
 import gymnasium
 import numpy as np
 
+from gran.util.misc import config
 from gran.util.wrapper.base import BaseWrapper
 
 
@@ -25,7 +26,7 @@ class GymFeatureBasedControlWrapper(BaseWrapper):
     .
     """
 
-    def __init__(self, config, env):
+    def __init__(self):
         """
         .
         """
@@ -62,11 +63,23 @@ class GymFeatureBasedControlWrapper(BaseWrapper):
             "needs to be one of {self.imitation_tasks}."
 
         self.task = config.task
-        self.task_name = self.get_task_name(self.task)
+        self.task_name = get_task_name(self.task)
 
         env = gymnasium.make(self.task_name)
 
         super().__init__(env)
+
+    def step(self, action):
+
+        obs, rew, done = super().step(action)
+
+        # if done:
+        #     if self.task == "cart_pole":
+        #         rew -= 1e-6
+        #     elif self.task in ["acrobot", "mountain_car"]:
+        #         rew += 1e-6
+
+        return obs, rew, done
 
     def set_state(self, state):
         """
@@ -125,7 +138,7 @@ def get_task_name(task):
         return "Walker2d-v4"
 
 
-def get_info(task):
+def get_task_info(task):
     """
     .
     """

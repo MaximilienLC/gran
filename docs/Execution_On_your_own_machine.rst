@@ -22,7 +22,7 @@ Make sure the ``GRAN_PATH`` variable is still set.
     $ docker run --rm --privileged --gpus=all \
            -e PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} \
            -v ${GRAN_PATH}:${GRAN_PATH} -w ${GRAN_PATH} \
-           -v /dev/shm/:/dev/shm/ gran:latest python3 gran/rand/main.py
+           -v /dev/shm/:/dev/shm/ gran:latest python3 gran
 
 2. b. Run jupyter-lab
 ---------------------

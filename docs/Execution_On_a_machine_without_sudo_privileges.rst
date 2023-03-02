@@ -21,7 +21,7 @@ Make sure the ``GRAN_PATH`` variable is still set.
 
    $ apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} \
          --pwd ${GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} \
-         ${GRAN_PATH}/docker/image.sif python3 gran/rand/main.py
+         ${GRAN_PATH}/docker/image.sif python3 gran
 
 2. Option B. Run Jupyter-lab
 ----------------------------

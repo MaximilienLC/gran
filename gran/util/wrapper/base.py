@@ -1,4 +1,20 @@
+# Copyright 2023 The Gran Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import gymnasium
+
+from gran.util.misc import config
 
 
 class BaseWrapper(gymnasium.Wrapper):
@@ -6,47 +22,47 @@ class BaseWrapper(gymnasium.Wrapper):
     .
     """
 
-    def __init__(self, config, env):
+    def __init__(self, env):
         """
         .
         """
         super().__init__(env)
 
-        if config.autoencoder.in_use:
+        if config.autoencoder.name != "none":
             self.autoencoder = instantiate(
                 config.autoencoder
             ).load_from_checkpoint(config.autoencoder.checkpoint)
 
-        if config.autoregressor.in_use:
+        if config.autoregressor.name != "none":
             self.autoregressor = instantiate(
                 config.autoregressor
             ).load_from_checkpoint(config.autoregressor.checkpoint)
 
-    def reset(self, **kwargs):
+    def reset(self, seed):
 
-        obs, info = self.env.reset(**kwargs)
+        obs, info = self.env.reset(seed=seed)
 
-        if self.autoencoder != None:
+        if config.autoencoder.name != "none":
 
             self.autoencoder.eval()
 
             with torch.no_grad():
                 obs = self.autoencoder(obs)
 
-        if self.autoregressor != None:
+        if config.autoregressor.name != "none":
 
             self.autoregressor.eval()
             self.autoregressor.reset()
 
             self.obs = obs
 
-        return obs, info
+        return obs
 
     def step(self, action):
         """
         .
         """
-        if self.autoregressor != None:
+        if config.autoregressor.name != "none":
 
             obs_action = torch.cat((self.obs, action)).view(1, 1, -1)
 
@@ -63,12 +79,12 @@ class BaseWrapper(gymnasium.Wrapper):
 
             obs, rew, term, trunc, info = self.env.step(action)
 
-            if self.autoencoder != None:
+            if config.autoencoder.name != "none":
 
                 with torch.no_grad():
                     obs = self.autoencoder(obs)
 
-            return obs, rew, term, trunc, info
+            return obs, rew, term or trunc
 
     def render(self):
         pass
