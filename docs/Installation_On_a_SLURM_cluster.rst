@@ -44,11 +44,8 @@ Clone the repository.
 
 .. code-block:: console
 
-    $ sed -i "s|shlex.quote(sys.executable)|\"apptainer exec --nv \
-          --bind ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} \
-          --env PYTHONPATH=\${PYTHONPATH}:${GRAN_PATH} \
-          \${GRAN_PATH}\/docker\/image.sif python3\"|" \
-          \${GRAN_PATH}/venv/lib/python3.10/site-packages/submitit/slurm/slurm.py
+    $ sed -i "s|shlex.quote(sys.executable)|\"apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} \
+          --env PYTHONPATH=\${PYTHONPATH}:${GRAN_PATH} ${GRAN_PATH}\/docker\/image.sif python3\"|" ${GRAN_PATH}/venv/lib/python3.10/site-packages/submitit/slurm/slurm.py
 
 4. Download the Apptainer image
 -------------------------------
