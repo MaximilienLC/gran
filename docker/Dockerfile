@@ -11,9 +11,6 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     # OpenMPI
     libopenmpi-dev \
-    # Parallel HDF5
-    libhdf5-openmpi-dev \
-    python3-h5py-mpi \
     # OpenCV requires system packages, best to install through apt-get 
     python3-opencv \
     # Box2D Requirement
@@ -34,6 +31,6 @@ RUN wget https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz -P ~/Download
 
 ADD reqs /pip_reqs/
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir --pre torch==2.0.0.dev20230220 --index-url https://download.pytorch.org/whl/nightly/cu117 \
-    && pip install --no-cache-dir --pre torchvision==0.15.0.dev20230220 --index-url https://download.pytorch.org/whl/nightly/cu117 \
+    #&& pip install --no-cache-dir --pre torch==2.0.0.dev20230220 --index-url https://download.pytorch.org/whl/nightly/cu117 \
+    #&& pip install --no-cache-dir --pre torchvision==0.15.0.dev20230220 --index-url https://download.pytorch.org/whl/nightly/cu117 \
     && pip install --no-cache-dir -r /pip_reqs/sweep_reqs.txt -r /pip_reqs/run_reqs.txt -r /pip_reqs/code_reqs.txt

@@ -16,7 +16,7 @@ from sb3_contrib import TQC
 from stable_baselines3 import DQN, PPO, SAC, TD3
 
 from gran.nevo.IO.imitation.base import BaseImitationIO, BaseTarget
-from gran.util.wrapper.gym_fb_control import get_task_name
+from gran.util.wrapper.gym_fb_control import get_env_name
 
 
 class Target(BaseTarget):
@@ -35,15 +35,15 @@ class IO(BaseImitationIO):
     def __init__(self):
         super().__init__()
 
-        if config.task in ["acrobot", "mountain_car"]:
+        if config.env in ["acrobot", "mountain_car"]:
             self.model = DQN
             self.model_name = "dqn"
 
-        elif config.task in ["cart_pole", "lunar_lander"]:
+        elif config.env in ["cart_pole", "lunar_lander"]:
             self.model = PPO
             self.model_name = "ppo"
 
-        elif config.task in [
+        elif config.env in [
             "mountain_car_continuous",
             "lunar_lander_continuous",
             "humanoid",
@@ -51,11 +51,11 @@ class IO(BaseImitationIO):
             self.model = SAC
             self.model_name = "sac"
 
-        elif config.task in ["ant", "swimmer", "walker_2d"]:
+        elif config.env in ["ant", "swimmer", "walker_2d"]:
             self.model = TD3
             self.model_name = "td3"
 
-        elif config.task in [
+        elif config.env in [
             "pendulum",
             "bipedal_walker",
             "bipedal_walker_hardcore",
@@ -77,13 +77,13 @@ class IO(BaseImitationIO):
             + "rl-trained-agents/"
             + self.model_name
             + "/"
-            + get_task_name(config.task)
+            + get_env_name(config.env)
             + "_1/"
         )
 
         return Target(
             self.model.load(
-                dir_path + get_task_name(config.task) + ".zip",
+                dir_path + get_env_name(config.env) + ".zip",
                 custom_objects=dict,
                 device="cpu",
             )

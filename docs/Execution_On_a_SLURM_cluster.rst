@@ -44,8 +44,6 @@ Run the lab.
 
 .. code-block:: console
 
-    $ salloc --account=rrg-pbellec --gres=gpu:1 apptainer exec --nv \
-          --bind ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} \
-          --env PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} \
-          ${GRAN_PATH}/docker/image.sif jupyter-lab --allow-root \
-          --ip $(hostname -f) --no-browser
+    $ salloc --account=rrg-pbellec --gres=gpu:1 apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} \
+        --pwd ${GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} ${GRAN_PATH}/docker/image.sif \
+        jupyter-lab --allow-root --ip $(hostname -f) --no-browser

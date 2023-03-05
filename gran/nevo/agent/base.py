@@ -45,11 +45,11 @@ class BaseAgent(metaclass=ABCMeta):
         self.curr_run_score = 0
         self.curr_run_num_steps = 0
 
-        if config.ecosystem.algorithm == "ga":
+        if config.agent.algorithm == "ga":
 
-            if isinstance(config.ecosystem.gen_transfer, str):
+            if isinstance(config.agent.gen_transfer, str):
 
-                if "env" in config.ecosystem.gen_transfer:
+                if "env" in config.agent.gen_transfer:
 
                     self.saved_env_state = None
                     self.saved_env_obs = None
@@ -58,7 +58,7 @@ class BaseAgent(metaclass=ABCMeta):
                     self.curr_episode_score = 0
                     self.curr_episode_num_steps = 0
 
-                if "fit" in config.ecosystem.gen_transfer:
+                if "fit" in config.agent.gen_transfer:
 
                     self.continual_fitness = 0
 

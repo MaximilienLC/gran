@@ -33,12 +33,11 @@ class BaseReinforcementSpace(BaseSpace, metaclass=ABCMeta):
 
         assert hasattr(self, "env")
 
-        # config.ecosystem.gen_transfer can be either bool or string
-        if config.ecosystem.gen_transfer:
-            assert not (
-                config.ecosystem.run_num_steps == "infinite"
-                and "env" in config.ecosystem.gen_transfer
-            )
+        # config.agent.gen_transfer can be either bool or string
+        assert not (
+            config.agent.run_num_steps == "infinite"
+            and "env" in config.agent.gen_transfer
+        )
 
         super().__init__(io_path="gran.nevo.IO.base", num_pops=1)
 
@@ -53,10 +52,7 @@ class BaseReinforcementSpace(BaseSpace, metaclass=ABCMeta):
         Returns:
             np.ndarray - The initial environment observation.
         """
-        if (
-            config.ecosystem.gen_transfer
-            and "env" in config.ecosystem.gen_transfer
-        ):
+        if "env" in config.agent.gen_transfer:
 
             if curr_gen == 0:
                 self.agent.saved_env_seed = curr_gen
@@ -69,7 +65,7 @@ class BaseReinforcementSpace(BaseSpace, metaclass=ABCMeta):
 
                 obs = self.agent.saved_env_obs.copy()
 
-        else:  # config.ecosystem.gen_transfer in [False, "fit"]:
+        else:  # config.agent.gen_transfer in ["none", "fit"]:
 
             obs = self.env.reset(curr_gen)
 
@@ -84,16 +80,11 @@ class BaseReinforcementSpace(BaseSpace, metaclass=ABCMeta):
             curr_gen - Current generation.
         Returns:
             np.ndarray - A new environment observation (np.ndarray).
-            bool - Whether the episode should terminate.
         """
-        self.agent.reset()
 
-        if (
-            config.ecosystem.gen_transfer
-            and "env" in config.ecosystem.gen_transfer
-        ):
+        if "env" in config.agent.gen_transfer:
 
-            if config.wandb.mode != "disabled":
+            if config.wandb != "disabled":
 
                 wandb.log(
                     {"score": self.agent.curr_episode_score, "gen": curr_gen}
@@ -108,7 +99,7 @@ class BaseReinforcementSpace(BaseSpace, metaclass=ABCMeta):
 
             return obs
 
-        else:  # config.ecosystem.gen_transfer in [False, "fit"]:
+        else:  # config.agent.gen_transfer in ["none", "fit"]:
 
             return np.empty(0)
 
@@ -120,22 +111,16 @@ class BaseReinforcementSpace(BaseSpace, metaclass=ABCMeta):
         Args:
             obs - The final environment observation.
         """
-        if (
-            config.ecosystem.gen_transfer
-            and "mem" not in config.ecosystem.gen_transfer
-        ):
+        if "mem" not in config.agent.gen_transfer:
             self.agent.reset()
 
-        if (
-            config.ecosystem.gen_transfer
-            and "env" in config.ecosystem.gen_transfer
-        ):
+        if "env" in config.agent.gen_transfer:
             self.agent.saved_env_state = self.env.get_state()
             self.agent.saved_env_obs = obs.copy()
 
-        if config.ecosystem.gen_transfer in [False, "fit"]:
+        if config.agent.gen_transfer in ["none", "fit"]:
 
-            if config.wandb.mode != "disabled":
+            if config.wandb != "disabled":
 
                 wandb.log(
                     {
@@ -160,31 +145,22 @@ class BaseReinforcementSpace(BaseSpace, metaclass=ABCMeta):
             self.agent.curr_run_score += rew
             self.agent.curr_run_num_steps += 1
 
-            if (
-                config.ecosystem.gen_transfer
-                and "env" in config.ecosystem.gen_transfer
-            ):
+            if "env" in config.agent.gen_transfer:
                 self.agent.curr_episode_score += rew
                 self.agent.curr_episode_num_steps += 1
 
-            if (
-                config.ecosystem.gen_transfer
-                and "fit" in config.ecosystem.gen_transfer
-            ):
+            if "fit" in config.agent.gen_transfer:
                 self.agent.continual_fitness += rew
 
             if done:
                 obs = self.done_reset(curr_gen)
 
-            if self.agent.curr_run_num_steps == config.ecosystem.run_num_steps:
+            if self.agent.curr_run_num_steps == config.agent.run_num_steps:
                 done = True
 
         self.final_reset(obs)
 
-        if (
-            config.ecosystem.gen_transfer
-            and "fit" in config.ecosystem.gen_transfer
-        ):
+        if "fit" in config.agent.gen_transfer:
 
             return np.array(
                 (self.agent.continual_fitness, self.agent.curr_run_num_steps)

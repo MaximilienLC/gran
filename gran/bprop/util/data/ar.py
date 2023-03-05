@@ -1,11 +1,27 @@
+# Copyright 2023 The Gran Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import numpy as np
+import pytorch_lightning as pl
+import torch
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import Dataset, DataLoader, random_split
 
 from gran.util.math import normalize
 
 
-class MDNRNNDataset(Dataset):
+class ARDataset(Dataset):
     def __init__(self, data: list):
 
         (
@@ -15,7 +31,7 @@ class MDNRNNDataset(Dataset):
             done_strung_array,
         ) = data
 
-        """ Normalize / PyTorch -> NumPy """
+        # 1) Normalize / PyTorch -> NumPy
 
         # array: comes from environment -> normalize to curb large values
         if isinstance(features_strung_array_or_tensor, np.ndarray):
@@ -30,7 +46,7 @@ class MDNRNNDataset(Dataset):
         # normalize rewards to curb large values
         rew_strung_array = normalize(rew_strung_array)
 
-        """ Split strung arrays """
+        # 2) Split strung arrays
 
         done_idxs = np.where(done_strung_array == True)[0]
 
@@ -46,7 +62,7 @@ class MDNRNNDataset(Dataset):
 
         done_split_array_list = np.split(done_strung_array, done_idxs + 1)[:-1]
 
-        """ NumPy -> PyTorch """
+        # 3) NumPy -> PyTorch
 
         features_split_tensor_list = [
             torch.from_numpy(array[:-1]) for array in features_split_array_list
@@ -64,7 +80,7 @@ class MDNRNNDataset(Dataset):
             torch.from_numpy(array[1:]) for array in done_split_array_list
         ]
 
-        """ Pad sequences """
+        # 4) Pad sequences
 
         features_padded_tensor = pad_sequence(
             features_split_tensor_list, batch_first=True

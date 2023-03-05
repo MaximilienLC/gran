@@ -1,2 +1,2 @@
 name: none
-dir: ae=none
+dir: ${.name}

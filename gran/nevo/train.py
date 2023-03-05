@@ -25,8 +25,8 @@ import numpy as np
 import torch
 import wandb
 
-from gran.nevo.util.misc import generate_new_seeds
-from gran.util.misc import config, get_task_domain
+from gran.nevo.util.misc import generate_new_seeds, verify_assertions
+from gran.util.misc import config, get_env_domain
 
 np.set_printoptions(suppress=True)
 warnings.filterwarnings("ignore")
@@ -35,11 +35,13 @@ sys.setrecursionlimit(2**31 - 1)
 
 def train():
 
-    if config.wandb.mode != "disabled":
+    verify_assertions()
+
+    if config.wandb != "disabled":
 
         os.environ["WANDB_SILENT"] = "true"
 
-        with open("../../../../../../../../wandb_key.txt", "r") as f:
+        with open("../../../../../../../wandb_key.txt", "r") as f:
             key = f.read()
 
         wandb.login(key=key)
@@ -56,23 +58,17 @@ def train():
     size = comm.Get_size()
     num_gpus = torch.cuda.device_count()
 
-    assert config.ecosystem.pop_size % config.num_cpus == 0
-
-    if config.ecosystem.algorithm == "es":
-        assert not config.ecosystem.gen_transfer
-        assert not config.ecosystem.pop_merge
-
     space_path = (
-        f"gran.nevo.space.{config.mode}.{get_task_domain(config.task)}"
+        f"gran.nevo.space.{config.paradigm}.{get_env_domain(config.env)}"
     )
 
     space = getattr(import_module(space_path), "Space")()
 
     agents = None
     agents_batch = []
-    agents_batch_size = config.ecosystem.pop_size // size
+    agents_batch_size = config.agent.pop_size // size
 
-    if config.ecosystem.algorithm == "ga":
+    if config.agent.algorithm == "ga":
         # [MPI buffer size, pair position, sending, seed]
         exchange_and_mutate_info = None
         exchange_and_mutate_info_batch = np.empty(
@@ -91,17 +87,17 @@ def train():
     )
 
     if rank == 0:
-        if config.ecosystem.algorithm == "ga":
+        if config.agent.algorithm == "ga":
             exchange_and_mutate_info = np.empty(
-                (config.ecosystem.pop_size, space.num_pops, 4), dtype=np.uint32
+                (config.agent.pop_size, space.num_pops, 4), dtype=np.uint32
             )
 
         fitnesses = np.empty(
-            (config.ecosystem.pop_size, space.num_pops), dtype=np.float32
+            (config.agent.pop_size, space.num_pops), dtype=np.float32
         )
 
         generation_results = np.empty(
-            (config.ecosystem.pop_size, space.num_pops, 3), dtype=np.float32
+            (config.agent.pop_size, space.num_pops, 3), dtype=np.float32
         )
 
         total_num_env_steps = 0
@@ -140,7 +136,7 @@ def train():
         is_gpu_queuing_cpu_proc = rank % num_cpu_procs_per_gpu == 0
 
         ith_gpu_agents_batch = []
-        ith_gpu_agents_batch_size = config.ecosystem.pop_size // num_gpus
+        ith_gpu_agents_batch_size = config.agent.pop_size // num_gpus
 
         ith_gpu_cpu_proc_list = np.arange(
             gpu_idx * num_cpu_procs_per_gpu,
@@ -168,7 +164,7 @@ def train():
 
             start = time.time()
 
-            if config.ecosystem.algorithm == "ga":
+            if config.agent.algorithm == "ga":
                 new_seeds = generate_new_seeds(curr_gen, space.num_pops)
 
                 if curr_gen != 0:
@@ -184,10 +180,10 @@ def train():
         """
         if curr_gen > 0:
 
-            if config.ecosystem.algorithm == "es":
+            if config.agent.algorithm == "es":
                 comm.Bcast(new_weights, root=0)
 
-            else:  # if config.ecosystem.algorithm == "ga":
+            else:  # if config.agent.algorithm == "ga":
 
                 if rank == 0:
 
@@ -200,8 +196,8 @@ def train():
 
                         pair_ranking = (
                             fitnesses_rankings[:, j]
-                            + config.ecosystem.pop_size // 2
-                        ) % config.ecosystem.pop_size
+                            + config.agent.pop_size // 2
+                        ) % config.agent.pop_size
 
                         # pair position
                         exchange_and_mutate_info[
@@ -210,7 +206,7 @@ def train():
 
                     # sending
                     exchange_and_mutate_info[:, :, 2] = np.greater_equal(
-                        fitnesses_rankings, config.ecosystem.pop_size // 2
+                        fitnesses_rankings, config.agent.pop_size // 2
                     )
 
                     # seeds
@@ -239,7 +235,7 @@ def train():
                         if exchange_and_mutate_info_batch[i, j, 2] == 1:
 
                             tag = int(
-                                config.ecosystem.pop_size * j
+                                config.agent.pop_size * j
                                 + agents_batch_size * rank
                                 + i
                             )
@@ -254,7 +250,7 @@ def train():
                         else:
 
                             tag = int(
-                                config.ecosystem.pop_size * j
+                                config.agent.pop_size * j
                                 + exchange_and_mutate_info_batch[i, j, 1]
                             )
 
@@ -284,9 +280,9 @@ def train():
             if curr_gen > 0:
                 space.agents = agents_batch[i]
 
-            if config.ecosystem.algorithm == "ga":
+            if config.agent.algorithm == "ga":
                 seeds = exchange_and_mutate_info_batch[i, :, 3]
-            else:  # config.ecosystem.algorithm == "es":
+            else:  # config.agent.algorithm == "es":
                 seeds = np.random.randint(2**32, size=2, dtype=np.uint32)
 
             space.mutate_agents(seeds, curr_gen)
@@ -324,7 +320,7 @@ def train():
                 root=gpu_idx * num_cpu_procs_per_gpu,
             )
 
-            if config.ecosystem.gen_transfer != "none":
+            if config.agent.gen_transfer != "none":
                 agents_batch = ith_gpu_comm.scatter(
                     ith_gpu_agents_batch,
                     root=gpu_idx * num_cpu_procs_per_gpu,
@@ -350,7 +346,7 @@ def train():
 
             fitnesses = generation_results[:, :, 0]
 
-            if config.ecosystem.pop_merge == "yes":
+            if config.agent.pop_merge == "yes":
                 fitnesses[:, 0] += fitnesses[:, 1][::-1]
                 fitnesses[:, 1] = fitnesses[:, 0][::-1]
 

@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import glob
+
 import gymnasium
+from hydra.utils import instantiate
+import torch
 
 from gran.util.misc import config
 
@@ -28,28 +32,44 @@ class BaseWrapper(gymnasium.Wrapper):
         """
         super().__init__(env)
 
-        if config.autoencoder.name != "none":
+        self.autoencoding = (
+            config.autoencoder.name != "none" and config.stage != "collect"
+        )
+
+        self.autoregressing = (
+            config.autoregressor.name != "none" and config.stage != "collect"
+        )
+
+        if self.autoencoding:
+
+            checkpoint = glob.glob("ae/*.ckpt")
+
             self.autoencoder = instantiate(
                 config.autoencoder
-            ).load_from_checkpoint(config.autoencoder.checkpoint)
+            ).load_from_checkpoint(checkpoint[0])
 
-        if config.autoregressor.name != "none":
+        if self.autoregressing:
+
+            checkpoint = glob.glob(
+                "ar/lightning_logs/version_0/checkpoints/*.ckpt"
+            )
+
             self.autoregressor = instantiate(
                 config.autoregressor
-            ).load_from_checkpoint(config.autoregressor.checkpoint)
+            ).load_from_checkpoint(checkpoint[0])
 
     def reset(self, seed):
 
-        obs, info = self.env.reset(seed=seed)
+        obs, _ = self.env.reset(seed=seed)
 
-        if config.autoencoder.name != "none":
+        if self.autoencoding:
 
             self.autoencoder.eval()
 
             with torch.no_grad():
                 obs = self.autoencoder(obs)
 
-        if config.autoregressor.name != "none":
+        if self.autoregressing:
 
             self.autoregressor.eval()
             self.autoregressor.reset()
@@ -62,7 +82,12 @@ class BaseWrapper(gymnasium.Wrapper):
         """
         .
         """
-        if config.autoregressor.name != "none":
+        if self.autoregressing:
+
+            self.obs = torch.tensor(self.obs).to(self.autoregressor.device)
+            action = torch.tensor([1, 0] if action == 0 else [0, 1]).to(
+                self.autoregressor.device
+            )
 
             obs_action = torch.cat((self.obs, action)).view(1, 1, -1)
 
@@ -70,16 +95,17 @@ class BaseWrapper(gymnasium.Wrapper):
                 self.obs, rew, done = self.autoregressor(obs_action)
 
             self.obs = self.obs.cpu().squeeze().numpy()
-            self.rew = self.rew.cpu().squeeze().numpy()
-            self.done = bool(self.done.cpu().squeeze().numpy())
+            rew = rew.cpu().squeeze().numpy()
+            done = bool(done.cpu().squeeze().numpy())
 
-            return self.obs, rew, done, done, None
+            print(self.obs)
+            return self.obs, rew, done
 
         else:
 
-            obs, rew, term, trunc, info = self.env.step(action)
+            obs, rew, term, trunc, _ = self.env.step(action)
 
-            if config.autoencoder.name != "none":
+            if self.autoencoding:
 
                 with torch.no_grad():
                     obs = self.autoencoder(obs)

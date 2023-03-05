@@ -1,33 +1,35 @@
+# Subconfigs
 defaults:
+  - agent: neuroevolution
   - autoencoder: none
   - autoregressor: none
-  - ecosystem: neuroevolution
   - _self_
 
 # Experiment
 stage: train # train | test
-task: cart_pole
-mode: reinforcement # reinforcement | imitation
+env: cart_pole
+paradigm: reinforcement
 num_iters: 1
+
+# Collection
+collection_episodes: 400
 
 # Hardware requirements
 num_cpus: 4
 num_gpus: 0
 
-# Wandb
-wandb:
-  mode: disabled # disabled | online | offline
-  project: gran
+# W&B
+wandb: disabled # disabled | online | offline
 
 # Directory management
-dir: task=${task},mode=${mode}
-full_dir: ${dir}/${autoencoder.dir}/${autoregressor.dir}/${ecosystem.dir}
+dir: env.${env}~paradigm.${paradigm}
+full_dir: ${dir}/agent-${agent.dir}/autoencoder-${autoencoder.dir}/autoregressor-${autoregressor.dir}/
 
 hydra:
   job:
     chdir: true
   run:
-    dir: data/outputs/agent-based/${full_dir}/
+    dir: data/outputs/agent/${full_dir}/
   sweep:
-    dir: data/outputs/agent-based/
+    dir: data/outputs/agent/
     subdir: ${full_dir}/

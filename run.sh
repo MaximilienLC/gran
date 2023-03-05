@@ -1,0 +1,6 @@
+GRAN_PATH=/home/mleclei/Dropbox/gran
+apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} ${GRAN_PATH}/docker/image.sif python3 gran -m env=acrobot,cart_pole,mountain_car,mountain_car_continuous,lunar_lander,lunar_lander_continuous agent.gen_transfer=env,fit,mem,env+fit,env+mem,fit+mem,env+fit+mem agent.run_num_steps=50
+apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} ${GRAN_PATH}/docker/image.sif python3 gran -m env=acrobot,cart_pole,mountain_car,mountain_car_continuous,lunar_lander,lunar_lander_continuous agent.gen_transfer=env,fit,mem,env+fit,env+mem,fit+mem,env+fit+mem agent.run_num_steps=50 stage=test
+apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} ${GRAN_PATH}/docker/image.sif python3 gran -m env=acrobot,cart_pole,mountain_car,mountain_car_continuous,lunar_lander,lunar_lander_continuous
+apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} ${GRAN_PATH}/docker/image.sif python3 gran -m env=acrobot,cart_pole,mountain_car,mountain_car_continuous,lunar_lander,lunar_lander_continuous stage=test
+

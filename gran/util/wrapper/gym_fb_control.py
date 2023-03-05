@@ -30,7 +30,7 @@ class GymFeatureBasedControlWrapper(BaseWrapper):
         """
         .
         """
-        self.imitation_tasks = [
+        self.imitation_envs = [
             "acrobot",
             "cart_pole",
             "mountain_car",
@@ -48,38 +48,25 @@ class GymFeatureBasedControlWrapper(BaseWrapper):
             "walker_2d",
         ]
 
-        self.reinforcement_tasks = self.imitation_tasks + [
+        self.reinforcement_envs = self.imitation_envs + [
             "humanoid_standup",
             "inverted_double_pendulum",
             "inverted_pendulum",
             "reacher",
         ]
 
-        if config.mode == "reinforcement":
-            assert config.task in self.reinforcement_tasks, f"config.task "
-            "needs to be one of {self.reinforcement_tasks}."
-        elif config.mode == "imitation":
-            assert config.task in self.imitation_tasks, f"config.task "
-            "needs to be one of {self.imitation_tasks}."
+        if config.paradigm == "reinforcement":
+            assert config.env in self.reinforcement_envs, f"config.env "
+            "needs to be one of {self.reinforcement_envs}."
+        elif config.paradigm == "imitation":
+            assert config.env in self.imitation_envs, f"config.env "
+            "needs to be one of {self.imitation_envs}."
 
-        self.task = config.task
-        self.task_name = get_task_name(self.task)
+        self.env_name = get_env_name(config.env)
 
-        env = gymnasium.make(self.task_name)
+        env = gymnasium.make(self.env_name)
 
         super().__init__(env)
-
-    def step(self, action):
-
-        obs, rew, done = super().step(action)
-
-        # if done:
-        #     if self.task == "cart_pole":
-        #         rew -= 1e-6
-        #     elif self.task in ["acrobot", "mountain_car"]:
-        #         rew += 1e-6
-
-        return obs, rew, done
 
     def set_state(self, state):
         """
@@ -94,57 +81,57 @@ class GymFeatureBasedControlWrapper(BaseWrapper):
         return copy.deepcopy(self.env)
 
 
-def get_task_name(task):
+def get_env_name(env):
     """
     .
     """
-    if task == "acrobot":
+    if env == "acrobot":
         return "Acrobot-v1"
-    elif task == "cart_pole":
+    elif env == "cart_pole":
         return "CartPole-v1"
-    elif task == "mountain_car":
+    elif env == "mountain_car":
         return "MountainCar-v0"
-    elif task == "mountain_car_continuous":
+    elif env == "mountain_car_continuous":
         return "MountainCarContinuous-v0"
-    elif task == "pendulum":
+    elif env == "pendulum":
         return "Pendulum-v1"
-    elif task == "bipedal_walker":
+    elif env == "bipedal_walker":
         return "BipedalWalker-v3"
-    elif task == "bipedal_walker_hardcore":
+    elif env == "bipedal_walker_hardcore":
         return "BipedalWalkerHardcore-v3"
-    elif task == "lunar_lander":
+    elif env == "lunar_lander":
         return "LunarLander-v2"
-    elif task == "lunar_lander_continuous":
+    elif env == "lunar_lander_continuous":
         return "LunarLanderContinuous-v2"
-    elif task == "ant":
+    elif env == "ant":
         return "Ant-v4"
-    elif task == "half_cheetah":
+    elif env == "half_cheetah":
         return "HalfCheetah-v4"
-    elif task == "hopper":
+    elif env == "hopper":
         return "Hopper-v4"
-    elif task == "humanoid":
+    elif env == "humanoid":
         return "Humanoid-v4"
-    elif task == "humanoid_standup":
+    elif env == "humanoid_standup":
         return "HumanoidStandup-v2"
-    elif task == "inverted_double_pendulum":
+    elif env == "inverted_double_pendulum":
         return "InvertedDoublePendulum-v2"
-    elif task == "inverted_pendulum":
+    elif env == "inverted_pendulum":
         return "InvertedPendulum-v2"
-    elif task == "reacher":
+    elif env == "reacher":
         return "Reacher-v2"
-    elif task == "swimmer":
+    elif env == "swimmer":
         return "Swimmer-v4"
-    else:  # task == "walker_2d":
+    else:  # env == "walker_2d":
         return "Walker2d-v4"
 
 
-def get_task_info(task):
+def get_env_info(env):
     """
     .
     """
-    task_name = get_task_name(task)
+    env_name = get_env_name(env)
 
-    env = gymnasium.make(task_name)
+    env = gymnasium.make(env_name)
 
     d_input = env.observation_space.shape[0]
 

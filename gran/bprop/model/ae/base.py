@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from omegaconf import DictConfig
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

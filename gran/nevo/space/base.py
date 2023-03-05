@@ -18,7 +18,7 @@ from importlib import import_module
 
 import numpy as np
 
-from gran.util.misc import config, get_task_domain
+from gran.util.misc import config, get_env_domain
 
 
 class BaseSpace(metaclass=ABCMeta):
@@ -38,22 +38,6 @@ class BaseSpace(metaclass=ABCMeta):
 
         self.io_path = io_path
         self.num_pops = num_pops
-
-        assert (
-            isinstance(config.ecosystem.run_num_steps, str)
-            or config.ecosystem.run_num_steps > 0
-        )
-
-        assert config.ecosystem.gen_transfer in [
-            False,
-            "env",
-            "fit",
-            "mem",
-            "env+fit",
-            "env+mem",
-            "fit+mem",
-            "env+fit+mem",
-        ]
 
         self.evaluates_on_gpu = False
 
@@ -75,8 +59,8 @@ class BaseSpace(metaclass=ABCMeta):
         self.agents = []
 
         agent_path = (
-            f"gran.nevo.agent.{config.ecosystem.net.type}."
-            + f"{get_task_domain(config.task)}"
+            f"gran.nevo.agent.{config.agent.net_type}."
+            + f"{get_env_domain(config.env)}"
         )
 
         for pop_idx in range(self.num_pops):

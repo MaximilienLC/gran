@@ -18,7 +18,7 @@ import torch
 from gran.nevo.agent.static.base import BaseStaticAgent
 from gran.nevo.net.static.fc_rnn_cpu import Net
 from gran.util.math import RunningStandardization
-from gran.util.wrapper.gym_fb_control import get_task_info
+from gran.util.wrapper.gym_fb_control import get_env_info
 from gran.util.misc import config
 
 
@@ -34,10 +34,10 @@ class Agent(BaseStaticAgent):
         else:  # self.pop_idx == 1:
             self.type = "discriminator"
 
-        info = get_task_info(config.task)
+        info = get_env_info(config.env)
         d_input, d_output, self.discrete_output, self.output_bound = info
 
-        if config.ecosystem.pop_merge:
+        if config.agent.pop_merge:
 
             self.net = Net([d_input, 50, 50, d_output + 1])
 
@@ -70,7 +70,7 @@ class Agent(BaseStaticAgent):
 
         x = x.numpy().squeeze(axis=0)
 
-        if config.ecosystem.pop_merge:
+        if config.agent.pop_merge:
             x = x[:-1] if self.type == "generator" else x[-1]  # discrim
 
         if self.type == "generator":

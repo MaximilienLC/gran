@@ -38,14 +38,9 @@ class BaseImitationSpace(BaseSpace, metaclass=ABCMeta):
         "required: a function that hides the environment's score portion of "
         "the screen to prevent the discriminator agent from utilizing it."
 
-        # config.ecosystem.gen_transfer can be either bool or string
-        if config.ecosystem.gen_transfer:
-            assert not (
-                config.ecosystem.run_num_steps == "infinite"
-                and "env" in config.ecosystem.gen_transfer
-            )
+        # config.agent.gen_transfer can be either bool or string
 
-        assert isinstance(config.ecosystem.pop_merge, bool)
+        assert isinstance(config.agent.pop_merge, bool)
 
         super().__init__(io_path="gran.nevo.IO.imitation.sb3", num_pops=2)
 
@@ -60,10 +55,7 @@ class BaseImitationSpace(BaseSpace, metaclass=ABCMeta):
         Returns:
             np.ndarray - The initial environment observation.
         """
-        if (
-            config.ecosystem.gen_transfer
-            and "env" in config.ecosystem.gen_transfer
-        ):
+        if "env" in config.agent.gen_transfer:
 
             if curr_gen == 0:
                 self.curr_actor_data_holder.saved_env_seed = curr_gen
@@ -87,7 +79,7 @@ class BaseImitationSpace(BaseSpace, metaclass=ABCMeta):
                     self.curr_actor_data_holder.curr_episode_num_steps,
                 )
 
-        else:  # config.ecosystem.gen_transfer in [False, "fit"]:
+        else:  # config.agent.gen_transfer in ["none", "fit"]:
 
             obs = self.curr_env.reset(curr_gen)
 
@@ -97,7 +89,7 @@ class BaseImitationSpace(BaseSpace, metaclass=ABCMeta):
         return obs
 
     @final
-    def done_reset(self, curr_gen: int) -> Tuple[np.ndarray, bool]:
+    def done_reset(self, curr_gen: int) -> np.ndarray:
         """
         Reset function called whenever the env returns done.
 
@@ -105,21 +97,17 @@ class BaseImitationSpace(BaseSpace, metaclass=ABCMeta):
             curr_gen - Current generation.
         Returns:
             np.ndarray - A new environment observation (np.ndarray).
-            bool - Whether the episode should terminate.
         """
         if self.generator == self.curr_actor:
             self.generator.reset()
 
         self.discriminator.reset()
 
-        if (
-            config.ecosystem.gen_transfer
-            and "env" in config.ecosystem.gen_transfer
-        ):
+        if "env" in config.agent.gen_transfer:
 
             if self.generator == self.curr_actor:  # check target
 
-                if config.wandb.mode != "disabled":
+                if config.wandb != "disabled":
 
                     wandb.log(
                         {
@@ -138,11 +126,11 @@ class BaseImitationSpace(BaseSpace, metaclass=ABCMeta):
                 self.curr_actor_data_holder.saved_env_seed
             )
 
-            return obs, False
+            return obs
 
-        else:  # config.ecosystem.gen_transfer in [False, "fit"]:
+        else:  # config.agent.gen_transfer in ["none", "fit"]:
 
-            return np.empty(0), True
+            return np.empty(0)
 
     @final
     def final_reset(self, obs: np.ndarray) -> None:
@@ -152,20 +140,14 @@ class BaseImitationSpace(BaseSpace, metaclass=ABCMeta):
         Args:
             obs - The final environment observation.
         """
-        if (
-            config.ecosystem.gen_transfer
-            and "mem" not in config.ecosystem.gen_transfer
-        ):
+        if "mem" not in config.agent.gen_transfer:
 
             if self.generator == self.curr_actor:
                 self.generator.reset()
 
             self.discriminator.reset()
 
-        if (
-            config.ecosystem.gen_transfer
-            and "env" in config.ecosystem.gen_transfer
-        ):
+        if "env" in config.agent.gen_transfer:
 
             self.curr_actor_data_holder.saved_env_state = self.get_env_state(
                 self.curr_env
@@ -173,11 +155,11 @@ class BaseImitationSpace(BaseSpace, metaclass=ABCMeta):
 
             self.curr_actor_data_holder.saved_env_obs = obs.copy()
 
-        if config.ecosystem.gen_transfer in [False, "fit"]:
+        if config.agent.gen_transfer in ["none", "fit"]:
 
             if self.generator == self.curr_actor:  # check target
 
-                if config.wandb.mode != "disabled":
+                if config.wandb != "disabled":
 
                     wandb.log(
                         {
@@ -208,7 +190,7 @@ class BaseImitationSpace(BaseSpace, metaclass=ABCMeta):
             self.curr_actor_data_holder.curr_run_num_steps = 0
 
             obs, done, p_imitation_target = self.init_reset(curr_gen), False, 0
-            hidden_score_obs = self.hide_score(obs, config.task)
+            hidden_score_obs = self.hide_score(obs, config.env)
 
             while not done:
 
@@ -218,14 +200,14 @@ class BaseImitationSpace(BaseSpace, metaclass=ABCMeta):
                     output = self.imitation_target(obs)
 
                 obs, rew, done = self.curr_env.step(output)
-                hidden_score_obs = self.hide_score(obs, config.task)
+                hidden_score_obs = self.hide_score(obs, config.env)
 
                 self.curr_actor_data_holder.curr_run_score += rew
                 self.curr_actor_data_holder.curr_run_num_steps += 1
 
                 if (
-                    config.ecosystem.gen_transfer
-                    and "env" in config.ecosystem.gen_transfer
+                    config.agent.gen_transfer
+                    and "env" in config.agent.gen_transfer
                 ):
                     self.curr_actor_data_holder.curr_episode_score += rew
                     self.curr_actor_data_holder.curr_episode_num_steps += 1
@@ -241,7 +223,7 @@ class BaseImitationSpace(BaseSpace, metaclass=ABCMeta):
 
                 if (
                     self.curr_actor_data_holder.curr_run_num_steps
-                    == config.ecosystem.run_num_steps
+                    == config.agent.run_num_steps
                 ):
                     done = True
 
@@ -257,7 +239,7 @@ class BaseImitationSpace(BaseSpace, metaclass=ABCMeta):
 
             self.final_reset(obs)
 
-        if config.ecosystem.pop_merge:
+        if config.agent.pop_merge:
 
             # Scale generator & discriminator fitnesses to [0, .5]
             generator_fitness = generator_fitness / 2
@@ -268,10 +250,7 @@ class BaseImitationSpace(BaseSpace, metaclass=ABCMeta):
             # Scale discriminator fitnesses to [0, 1]
             discriminator_fitness = (discriminator_fitness + 1) / 2
 
-        if (
-            config.ecosystem.gen_transfer
-            and "fit" in config.ecosystem.gen_transfer
-        ):
+        if "fit" in config.agent.gen_transfer:
 
             self.generator.continual_fitness += generator_fitness
             self.discriminator.continual_fitness += discriminator_fitness

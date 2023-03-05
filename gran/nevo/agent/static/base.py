@@ -53,6 +53,4 @@ class BaseStaticAgent(BaseAgent, metaclass=ABCMeta):
         Mutation method for the static agent. Mutates the networks' parameters.
         """
         for param in self.net.parameters():
-            param.data += config.ecosystem.sigma.value * torch.randn_like(
-                param.data
-            )
+            param.data += config.agent.sigma * torch.randn_like(param.data)

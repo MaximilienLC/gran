@@ -19,9 +19,8 @@ Make sure the ``GRAN_PATH`` variable is still set.
 
 .. code-block:: console
 
-   $ apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} \
-         --pwd ${GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} \
-         ${GRAN_PATH}/docker/image.sif python3 gran
+   $ apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} \
+      --env PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} ${GRAN_PATH}/docker/image.sif python3 gran
 
 2. Option B. Run Jupyter-lab
 ----------------------------
@@ -37,7 +36,6 @@ Start the notebook on the running machine.
 
 .. code-block:: console
 
-   $ apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} \
-         --pwd ${GRAN_PATH} --env PYTHONPATH=${GRAN_PATH}:${GRAN_PATH} \
-         ${GRAN_PATH}/docker/image.sif jupyter-lab \
-         --allow-root --no-browser --port 1234
+   $ apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} \
+      --env PYTHONPATH=${GRAN_PATH}:${GRAN_PATH} ${GRAN_PATH}/docker/image.sif jupyter-lab \
+      --allow-root --no-browser --port 1234

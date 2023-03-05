@@ -57,7 +57,7 @@ class BaseDynamicAgent(BaseAgent, metaclass=ABCMeta):
         Mutation method for the dynamic agent. Randomly select an architectural
         mutation.
         """
-        if config.ecosystem.sigma.is_adaptive:
+        if config.agent.mutate_sigma:
 
             # 1. Mutate probabilities
             idx = np.random.randint(len(self.net.architectural_operations))

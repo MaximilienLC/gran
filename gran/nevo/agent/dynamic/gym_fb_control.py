@@ -17,7 +17,7 @@ import numpy as np
 from gran.nevo.agent.dynamic.base import BaseDynamicAgent
 from gran.nevo.net.dynamic.recurrent import Net
 from gran.util.math import RunningStandardization
-from gran.util.wrapper.gym_fb_control import get_task_info
+from gran.util.wrapper.gym_fb_control import get_env_info
 from gran.util.misc import config
 
 
@@ -33,10 +33,10 @@ class Agent(BaseDynamicAgent):
         else:  # self.pop_idx == 1:
             self.type = "discriminator"
 
-        info = get_task_info(config.task)
+        info = get_env_info(config.env)
         d_input, d_output, self.discrete_output, self.output_bound = info
 
-        if config.ecosystem.pop_merge:
+        if config.agent.pop_merge:
 
             self.net = Net([d_input, d_output + 1])
 
@@ -67,7 +67,7 @@ class Agent(BaseDynamicAgent):
 
         x = np.array(x).squeeze(axis=1)
 
-        if config.ecosystem.pop_merge:
+        if config.agent.pop_merge:
             x = x[:-1] if self.type == "generator" else x[-1]  # discrim
 
         if self.type == "generator":

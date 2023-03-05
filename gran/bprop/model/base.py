@@ -12,24 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from omegaconf import DictConfig
+from abc import ABCMeta, abstractmethod
+from typing import final
+
 import pytorch_lightning as pl
 import torch
 
 
-class BaseModel(pl.LightningModule):
+class BaseModel(pl.LightningModule, metaclass=ABCMeta):
     """
     Base Model.
-    Concrete subclasses need to be named *Model*.
     """
 
-    def __init__(self: DictConfig) -> None:
+    def __init__(self) -> None:
 
         super().__init__()
 
-    def step(self, batch: torch.Tensor, stage: str):
-        raise NotImplementedError
+        self.save_hyperparameters()
 
+    @abstractmethod
+    def step(self, batch: torch.Tensor, stage: str):
+        pass
+
+    @final
     def training_step(self, batch: torch.Tensor, batch_idx: int):
 
         loss = self.step(batch, "train")
@@ -37,11 +42,13 @@ class BaseModel(pl.LightningModule):
 
         return loss
 
+    @final
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
 
         loss = self.step(batch, "val")
         self.log("val/loss", loss)
 
+    @final
     def test_step(self, batch: torch.Tensor, batch_idx: int):
 
         loss = self.step(batch, "test")

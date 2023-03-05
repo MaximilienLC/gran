@@ -1,0 +1,34 @@
+# Mode
+mode: neuroevolution
+
+# Algorithm settings
+algorithm: ga # ga | es 
+pop_size: 40
+num_gens_per_iter: 100
+
+# Population/Agent settings
+gen_transfer: none # none | env | fit | mem | env+fit | env+mem | fit+mem | env+fit+mem
+run_num_steps: 0 # integer (0 <=> infinite)
+pop_merge: False # False | True
+
+# Network settings
+net_type: dynamic # dynamic | static
+recurrent: True # True | False
+sigma: 0.01
+mutate_sigma: False # True | False
+
+# Training settings
+save_interval: 1
+
+# Testing settings
+num_tests: 10
+num_steps_per_test: infinite
+
+# Saving directory
+dir: "mode.${.mode}~\
+      algorithm.${.algorithm}~\
+      pop_size.${.pop_size}~\
+      net_type.${.net_type}~\
+      gen_transfer.${.gen_transfer}~\
+      run_num_steps.${.run_num_steps}~\
+      pop_merge.${.pop_merge}"

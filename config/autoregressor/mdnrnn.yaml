@@ -1,8 +1,14 @@
 name: mdnrnn
 
+_target_: gran.bprop.model.ar.mdnrnn.MDNRNN
 num_features: 4
 num_actions: 2
 hidden_size: 100
 num_gaussians: 5
 predicting_reward: False
-predicting_termination: False 
+predicting_termination: False
+
+dir: "${.name}~hidden_size.${.hidden_size}~\
+      num_gaussians.${.num_gaussians}~\
+      predicting_reward.${.predicting_reward}~\
+      predicting_termination.${.predicting_termination}"

@@ -15,13 +15,11 @@
 import glob
 import os
 import pickle
-import random
 import sys
 import warnings
 
 from mpi4py import MPI
 import numpy as np
-import torch
 
 from gran.util.misc import config
 from gran.util.wrapper.gym_fb_control import GymFeatureBasedControlWrapper
@@ -33,7 +31,7 @@ sys.setrecursionlimit(2**31 - 1)
 
 def test():
 
-    if config.wandb.mode != "disabled":
+    if config.wandb != "disabled":
 
         os.environ["WANDB_SILENT"] = "true"
 
@@ -48,8 +46,8 @@ def test():
 
     MAX_INT = 2**31 - 1
 
-    if config.ecosystem.num_steps_per_test == "infinite":
-        config.ecosystem.num_steps_per_test = MAX_INT
+    if config.agent.num_steps_per_test == "infinite":
+        config.agent.num_steps_per_test = MAX_INT
 
     """
     Initialization of various MPI & EA-specific variables.
@@ -105,35 +103,32 @@ def test():
         fitnesses_sorting_indices = fitnesses.argsort(axis=0)
         fitnesses_rankings = fitnesses_sorting_indices.argsort(axis=0)
         selected = np.greater_equal(
-            fitnesses_rankings, config.ecosystem.pop_size // 2
+            fitnesses_rankings, config.agent.pop_size // 2
         )
         selected_indices = np.where(selected[:, 0] == True)[0]
 
         evaluation = [
             np.zeros(
-                (config.ecosystem.pop_size // 2, config.ecosystem.num_tests)
+                (config.agent.pop_size // 2, config.agent.num_tests)
             ),
             total_num_env_steps,
         ]
 
-        for i in range(config.ecosystem.pop_size // 2):
+        for i in range(config.agent.pop_size // 2):
 
             agent = agents[selected_indices[i]][0]
 
-            for j in range(config.ecosystem.num_tests):
+            for j in range(config.agent.num_tests):
 
-                seed = MAX_INT - j
-
-                random.seed(seed)
-                np.random.seed(seed)
-                torch.manual_seed(seed)
-                torch.cuda.manual_seed(seed)
+                seed_everything(MAX_INT - j)
 
                 agent.reset()
 
                 obs = env.reset(seed)
 
-                for k in range(config.ecosystem.num_steps_per_test):
+                num_steps = 
+
+                for k in range(config.agent.num_steps_per_test):
 
                     obs, rew, done = env.step(agent(obs))
                     evaluation[0][i][j] += rew

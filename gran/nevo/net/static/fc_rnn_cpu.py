@@ -29,7 +29,7 @@ class Net(nn.Module):
 
         self.dimensions = dimensions
 
-        if config.ecosystem.net.recurrent:
+        if config.agent.recurrent:
 
             if len(dimensions) == 2:
                 self.recurrent_layer_idx = 0
@@ -40,10 +40,7 @@ class Net(nn.Module):
 
         for i in range(len(dimensions) - 1):
 
-            if (
-                config.ecosystem.net.recurrent
-                and i == self.recurrent_layer_idx
-            ):
+            if config.agent.recurrent and i == self.recurrent_layer_idx:
                 self.rnn = nn.RNN(dimensions[i], dimensions[i + 1])
                 self.h = torch.zeros(1, 1, dimensions[i + 1])
             else:
@@ -51,14 +48,14 @@ class Net(nn.Module):
 
     def reset(self):
 
-        if config.ecosystem.net.recurrent:
+        if config.agent.recurrent:
             self.h *= 0
 
     def forward(self, x):
 
         for i in range(len(self.dimensions) - 1):
 
-            if config.ecosystem.net.recurrent:
+            if config.agent.recurrent:
 
                 if i + 3 == len(self.dimensions) or len(self.dimensions) == 2:
                     x, self.h = self.rnn(x[None, :], self.h)

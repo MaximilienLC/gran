@@ -30,14 +30,6 @@ class BaseIO:
 
     def __init__(self):
 
-        assert config.ecosystem.save_interval in range(
-            1, config.ecosystem.num_gens_per_iter
-        )
-
-        assert (
-            config.ecosystem.save_interval % config.ecosystem.num_gens_per_iter
-        )
-
         self.compute_prev_new_num_gens()
         self.compute_save_timesteps()
 
@@ -57,27 +49,26 @@ class BaseIO:
         )
 
         curr_iter_elapsed_num_gens = (
-            self.prev_num_gens - config.ecosystem.prev_num_gens
+            self.prev_num_gens - config.agent.prev_num_gens
         )
 
         self.new_num_gens = (
-            config.ecosystem.num_gens_per_iter - curr_iter_elapsed_num_gens
+            config.agent.num_gens_per_iter - curr_iter_elapsed_num_gens
         )
 
     def compute_save_timesteps(self):
 
         self.save_points = []
 
-        if config.ecosystem.save_interval != 1:
-            self.save_points += [config.ecosystem.prev_num_gens + 1]
+        if config.agent.save_interval != 1:
+            self.save_points += [config.agent.prev_num_gens + 1]
 
         for i in range(
-            config.ecosystem.num_gens_per_iter
-            // config.ecosystem.save_interval
+            config.agent.num_gens_per_iter // config.agent.save_interval
         ):
             self.save_points.append(
-                config.ecosystem.prev_num_gens
-                + config.ecosystem.save_interval * (i + 1)
+                config.agent.prev_num_gens
+                + config.agent.save_interval * (i + 1)
             )
 
     def load_state(self) -> list:
