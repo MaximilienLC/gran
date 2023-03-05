@@ -21,7 +21,7 @@ import warnings
 from mpi4py import MPI
 import numpy as np
 
-from gran.util.misc import config
+from gran.util.misc import config, seed_everything
 from gran.util.wrapper.gym_fb_control import GymFeatureBasedControlWrapper
 
 np.set_printoptions(suppress=True)
@@ -108,9 +108,7 @@ def test():
         selected_indices = np.where(selected[:, 0] == True)[0]
 
         evaluation = [
-            np.zeros(
-                (config.agent.pop_size // 2, config.agent.num_tests)
-            ),
+            np.zeros((config.agent.pop_size // 2, config.agent.num_tests)),
             total_num_env_steps,
         ]
 
@@ -124,11 +122,9 @@ def test():
 
                 agent.reset()
 
-                obs = env.reset(seed)
+                obs = env.reset(MAX_INT - j)
 
-                num_steps = 
-
-                for k in range(config.agent.num_steps_per_test):
+                for _ in range(config.agent.num_steps_per_test):
 
                     obs, rew, done = env.step(agent(obs))
                     evaluation[0][i][j] += rew

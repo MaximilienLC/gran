@@ -12,7 +12,7 @@ Make sure the ``GRAN_PATH`` variable is still set.
 
    # Examples
    $ GRAN_PATH=/home/stav/gran
-   $ GRAN_PATH=/home/mleclei/Dropbox/gran
+   $ GRAN_PATH=/data/simexp/mleclei/Dropbox/gran
 
 2. Option A. Execute the sample code
 ------------------------------------

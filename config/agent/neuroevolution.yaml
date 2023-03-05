@@ -21,7 +21,7 @@ mutate_sigma: False # True | False
 save_interval: 1
 
 # Testing settings
-num_tests: 10
+num_tests: 3
 num_steps_per_test: infinite
 
 # Saving directory

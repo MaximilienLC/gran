@@ -14,7 +14,7 @@ Make sure the ``GRAN_PATH`` variable is still set.
    $ GRAN_PATH=/home/stav/gran
    $ GRAN_PATH=/home/max/Dropbox/gran
 
-2. a. Execute the sample code
+2. Option A. Execute the sample code
 -----------------------------
 
 .. code-block:: console
@@ -24,7 +24,7 @@ Make sure the ``GRAN_PATH`` variable is still set.
            -v ${GRAN_PATH}:${GRAN_PATH} -w ${GRAN_PATH} \
            -v /dev/shm/:/dev/shm/ gran:latest python3 gran
 
-2. b. Run jupyter-lab
+2. Option B. Run Jupyter-lab
 ---------------------
 
 .. code-block:: console

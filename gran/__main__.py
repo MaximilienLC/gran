@@ -31,9 +31,9 @@ def main(config: DictConfig):
     autoenconding = config.autoencoder.name != "none"
     autoregressing = config.autoregressor.name != "none"
 
-    if config.stage == "train":
+    for curr_iter in range(config.num_iters):
 
-        for curr_iter in range(config.num_iters):
+        if config.stage == "train":
 
             # if autoenconding or autoregressing:
             #     fork_mpi_processes("collect", curr_iter, config.num_cpus)
@@ -55,13 +55,13 @@ def main(config: DictConfig):
                 agent = instantiate(config.agent)
                 agent.train()
 
-    else:  # config.stage == "test":
+        else:  # config.stage == "test":
 
-        if config.agent.mode == "neuroevolution":
-            fork_mpi_processes("test", curr_iter, config.num_cpus)
-        else:
-            agent = instantiate(config.agent)
-            agent.test()
+            if config.agent.mode == "neuroevolution":
+                fork_mpi_processes("test", curr_iter, config.num_cpus)
+            else:
+                agent = instantiate(config.agent)
+                agent.test()
 
 
 def fork_mpi_processes(stage: str, curr_iter: int, num_cpus: int):

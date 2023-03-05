@@ -15,7 +15,7 @@ num_iters: 1
 collection_episodes: 400
 
 # Hardware requirements
-num_cpus: 4
+num_cpus: 40
 num_gpus: 0
 
 # W&B

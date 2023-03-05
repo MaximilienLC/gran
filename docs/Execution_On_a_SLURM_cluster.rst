@@ -14,8 +14,10 @@ Make sure the ``GRAN_PATH`` variable is still set.
    $ GRAN_PATH=/scratch/stavb/gran
    $ GRAN_PATH=/scratch/mleclei/Dropbox/gran
 
-2. Activate the Submitit venv in tmux
--------------------------------------
+2. Option A. Execute the sample code
+------------------------------------
+
+Activate the Submitit venv in tmux.
 
 .. code-block:: console
 
@@ -23,14 +25,13 @@ Make sure the ``GRAN_PATH`` variable is still set.
     $ cd ${GRAN_PATH}
     $ . ${GRAN_PATH}/venv/bin/activate
 
-3. Option A. Execute the sample code
-------------------------------------
+Run the library.
 
 .. code-block:: console
 
-    $ python3 -m gran -m hydra/launcher=submitit_slurm +launcher=slurm
+    $ python3 -m gran -m hydra/launcher=submitit_slurm +launcher=beluga
 
-3. Option B. Run Jupyter-lab
+2. Option B. Run Jupyter-lab
 ----------------------------
 
 From your own machine create a SSH tunnel.
@@ -44,6 +45,7 @@ Run the lab.
 
 .. code-block:: console
 
-    $ salloc --account=rrg-pbellec --gres=gpu:1 apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} \
-        --pwd ${GRAN_PATH} --env PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} ${GRAN_PATH}/docker/image.sif \
-        jupyter-lab --allow-root --ip $(hostname -f) --no-browser
+    $ salloc --account=rrg-pbellec bash -c "module load apptainer/1.0; \
+        apptainer exec --nv --bind ${GRAN_PATH}:${GRAN_PATH} --pwd ${GRAN_PATH} \
+        --env PYTHONPATH=${PYTHONPATH}:${GRAN_PATH} ${GRAN_PATH}/docker/image.sif \
+        jupyter-lab --allow-root --ip $(hostname -f) --no-browser"

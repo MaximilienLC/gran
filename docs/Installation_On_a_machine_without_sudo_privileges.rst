@@ -23,7 +23,7 @@ Set the ``GRAN_PATH`` variable.
 
    # Examples
    $ GRAN_PATH=/home/stav/gran
-   $ GRAN_PATH=/home/mleclei/Dropbox/gran
+   $ GRAN_PATH=/data/simexp/mleclei/Dropbox/gran
 
 Clone the repository.
 
