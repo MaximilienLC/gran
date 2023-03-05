@@ -4,7 +4,7 @@ mode: neuroevolution
 # Algorithm settings
 algorithm: ga # ga | es 
 pop_size: 40
-num_gens_per_iter: 100
+num_gens_per_iter: 1000
 
 # Population/Agent settings
 gen_transfer: none # none | env | fit | mem | env+fit | env+mem | fit+mem | env+fit+mem
@@ -12,7 +12,7 @@ run_num_steps: 0 # integer (0 <=> infinite)
 pop_merge: False # False | True
 
 # Network settings
-net_type: dynamic # dynamic | static
+net_type: static # dynamic | static
 recurrent: True # True | False
 sigma: 0.01
 mutate_sigma: False # True | False
